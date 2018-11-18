@@ -1,12 +1,14 @@
+import random
+
 class BoardState:
     layers = {"top":     [[' ', ' ', ' ', ' '],
                           [' ', ' ', ' ', ' '],
                           [' ', ' ', ' ', ' '],
                           [' ', ' ', ' ', ' ']],
-              "top_mid": [' ', ' ', ' ', ' ',
-                          ' ', ' ', ' ', ' ',
-                          ' ', ' ', ' ', ' ',
-                          ' ', ' ', ' ', ' '],
+              "top_mid": [[' ', ' ', ' ', ' '],
+                          [' ', ' ', ' ', ' '],
+                          [' ', ' ', ' ', ' '],
+                          [' ', ' ', ' ', ' ']],
               "bot_mid": [' ', ' ', ' ', ' ',
                           ' ', ' ', ' ', ' ',
                           ' ', ' ', ' ', ' ',
@@ -16,23 +18,26 @@ class BoardState:
                           ' ', ' ', ' ', ' ',
                           ' ', ' ', ' ', ' ']}
 
-    sums = {"top": {"rows": [0,0,0,0], "columns": [0,0,0,0]}}
+    sums = {"top": {"rows": [0,0,0,0], "columns": [0,0,0,0]}, "top_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0]},}
     
     def __init__(self):
+        print("Board initiated!")
         return
 
     def make_move(self, character, layer, row, column):
         if self.layers[layer][row][column] is not ' ':
-            print("Shit")
+            print(self.layers)
             raise ValueError
             return
         self.layers[layer][row][column] = character
-        self.sums[layer]['rows'][row] += 1
+        self.sums[layer]['rows'][row] += {'x': 1, 'o': -1}[character]
         return
 
     def isWin(self):
         if '4' in str(self.sums):
-            return True
+            return 'x'
+        if '-4' in str(self.sums):
+            return 'o'
         else:
             return False
 
@@ -47,13 +52,13 @@ class BoardState:
         print("  / " + self.layers["top"][3][0] + " / " + self.layers["top"][3][1] + " / " + self.layers["top"][3][2] + " / " + self.layers["top"][3][3] + " /      |")
         print(" /___/___/___/___/       |")
         print("|       |________|_______|")
-        print("|       / " + self.layers["top_mid"][0] + " / " + self.layers["top_mid"][1] + " /|" + self.layers["top_mid"][2] + " / " + self.layers["top_mid"][3] + " /|")
+        print("|       / " + self.layers["top_mid"][0][0] + " / " + self.layers["top_mid"][0][1] + " /|" + self.layers["top_mid"][0][2] + " / " + self.layers["top_mid"][0][3] + " /|")
         print("|      /___/___/_|_/___/ |")
-        print("|     / " + self.layers["top_mid"][4] + " / " + self.layers["top_mid"][5] + " / " + self.layers["top_mid"][6] + "|/ " + self.layers["top_mid"][7] + " /  |")
+        print("|     / " + self.layers["top_mid"][1][0] + " / " + self.layers["top_mid"][1][1] + " / " + self.layers["top_mid"][1][2] + "|/ " + self.layers["top_mid"][1][3] + " /  |")
         print("|    /___/___/___|___/   |")
-        print("|   / " + self.layers["top_mid"][8] + " / " + self.layers["top_mid"][9] + " / " + self.layers["top_mid"][10] + " /|" + self.layers["top_mid"][11] + " /    |")
+        print("|   / " + self.layers["top_mid"][2][0] + " / " + self.layers["top_mid"][2][1] + " / " + self.layers["top_mid"][2][2] + " /|" + self.layers["top_mid"][2][3] + " /    |")
         print("|  /___/___/___/_|_/     |")
-        print("| / " + self.layers["top_mid"][12] + " / " + self.layers["top_mid"][13] + " / " + self.layers["top_mid"][14] + " / " + self.layers["top_mid"][15] + "|/      |")
+        print("| / " + self.layers["top_mid"][3][0] + " / " + self.layers["top_mid"][3][1] + " / " + self.layers["top_mid"][3][2] + " / " + self.layers["top_mid"][3][3] + "|/      |")
         print("|/___/___/___/___|       |")
         print("|       |________|_______|")
         print("|       / " + self.layers["bot_mid"][0] + " / " + self.layers["bot_mid"][1] + " /|" + self.layers["bot_mid"][2] + " / " + self.layers["bot_mid"][3] + " /|")
@@ -75,18 +80,21 @@ class BoardState:
         print("|/___/___/___/___|        ")
 
 
-
 board = BoardState()
+board.draw_board()
+player = True
 
 while(True):
-    board.draw_board()
-    if board.isWin():
-        print("GAME OVER")
+    winner = board.isWin()
+    if winner:
+        print("PLAYER " + winner + " WON")
         break
     try:
         print("Choose layer, row and column:")
         (layer, row, column) = map(int, input().split(' '))
-        board.make_move('x', {1: "top", 2: "top_mid", 3: "bot_mid", 4: "bottom"}[layer], row-1, column-1)
+        board.make_move({True: 'x', False: 'o'}[player], {1: "top", 2: "top_mid", 3: "bot_mid", 4: "bottom"}[layer], row-1, column-1)
         print(chr(27) + "[2J")
+        board.draw_board()
+        player = not player
     except ValueError:
         print("This field is already taken!")
