@@ -1,5 +1,3 @@
-import random
-
 class BoardState:
     layers = {"top":     [[' ', ' ', ' ', ' '],
                           [' ', ' ', ' ', ' '],
@@ -18,7 +16,14 @@ class BoardState:
                           [' ', ' ', ' ', ' '],
                           [' ', ' ', ' ', ' ']]}
 
-    sums = {"top": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}, "top_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}, "bot_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}, "bottom": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}}
+    sums = {"top": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]},
+            "top_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]},
+            "bot_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]},
+            "bottom": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]},
+            "vertical": [[0,0,0,0],
+                         [0,0,0,0],
+                         [0,0,0,0],
+                         [0,0,0,0]]}
     
     def __init__(self):
         print("Board initiated!")
@@ -32,6 +37,7 @@ class BoardState:
 
         self.sums[layer]['rows'][row] += {'x': 1, 'o': -1}[character]
         self.sums[layer]['columns'][column] += {'x': 1, 'o': -1}[character]
+        self.sums['vertical'][row][column] += {'x': 1, 'o': -1}[character]
         if row == column:
             self.sums[layer]['diagonal'][0] += {'x': 1, 'o': -1}[character]
         if (row + column) == 5:
