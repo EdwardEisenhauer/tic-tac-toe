@@ -26,11 +26,11 @@ class BoardState:
 
     def make_move(self, character, layer, row, column):
         if self.layers[layer][row][column] is not ' ':
-            print(self.layers)
             raise ValueError
             return
         self.layers[layer][row][column] = character
         self.sums[layer]['rows'][row] += {'x': 1, 'o': -1}[character]
+        self.sums[layer]['columns'][column] += {'x': 1, 'o': -1}[character]
         return
 
     def isWin(self):
