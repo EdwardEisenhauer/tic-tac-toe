@@ -91,6 +91,8 @@ class BoardState:
         print("| / " + self.layers["bottom"][3][0] + " / " + self.layers["bottom"][3][1] + " / " + self.layers["bottom"][3][2] + " / " + self.layers["bottom"][3][3] + "|/       ")
         print("|/___/___/___/___|        ")
 
+def clear_screen():
+    print(chr(27) + "[2J")
 
 board = BoardState()
 board.draw_board()
@@ -102,10 +104,11 @@ while(True):
         print("PLAYER " + winner + " WON")
         break
     try:
+        print({True: 'x', False: 'o'}[player] + "'s move")
         print("Choose layer, row and column:")
         (layer, row, column) = map(int, input().split(' '))
         board.make_move({True: 'x', False: 'o'}[player], {1: "top", 2: "top_mid", 3: "bot_mid", 4: "bottom"}[layer], row-1, column-1)
-        print(chr(27) + "[2J")
+        clear_screen()
         board.draw_board()
         player = not player
     except ValueError:
