@@ -2,6 +2,7 @@ import random
 from enum import Enum
 from itertools import chain
 
+
 class Layer(Enum):
     TOP = 1
     TOP_MIDDLE = 2
@@ -21,6 +22,7 @@ class Layer(Enum):
         elif idx == 4:
             return Layer.BOTTOM
 
+
 class Marking(Enum):
     X = 1
     O = 2
@@ -31,23 +33,33 @@ class Marking(Enum):
             return " "
         return self.name
 
+
 class BoardState:
-    layers = {Layer.TOP:     [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]],
-              Layer.TOP_MIDDLE: [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]],
-              Layer.BOTTOM_MIDDLE: [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]],
-              Layer.BOTTOM:  [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
-                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]]}
+    layers = {
+        Layer.TOP: [
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]
+        ],
+        Layer.TOP_MIDDLE: [
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]
+        ],
+        Layer.BOTTOM_MIDDLE: [
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]
+        ],
+        Layer.BOTTOM: [
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+            [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]
+        ]}
 
     sums = {
         Layer.TOP: {
@@ -61,21 +73,23 @@ class BoardState:
 
     def __init__(self):
         print("Board initiated!")
-        return
 
     def make_move(self, character, layer, row, column):
         if self.layers[layer][row][column] is not Marking.EMPTY:
             raise ValueError
         self.layers[layer][row][column] = character
+        self._update_sums(character, layer, row, column)
 
-        self.sums[layer]['rows'][row] += {Marking.X: 1, Marking.O: -1}[character]
-        self.sums[layer]['columns'][column] += {Marking.X: 1, Marking.O: -1}[character]
+    def _update_sums(self, character, layer, row, column):
+        self.sums[layer]['rows'][row] += self._mark_to_v(character)
+        self.sums[layer]['columns'][column] += self._mark_to_v(character)
         if row == column:
-            self.sums[layer]['diagonal'][0] += {Marking.X: 1, Marking.O: -1}[character]
+            self.sums[layer]['diagonal'][0] += self._mark_to_v(character)
         if (row + column) == 5:
-            self.sums[layer]['diagonal'][1] += {Marking.X: 1, Marking.O: -1}[character]
+            self.sums[layer]['diagonal'][1] += self._mark_to_v(character)
 
-        return
+    def _mark_to_v(self, marking):
+        return {Marking.X: 1, Marking.O: -1}[marking]
 
     def isWin(self):
         if "4" in str(self.sums):
@@ -131,6 +145,7 @@ class BoardState:
                     data.append(el)
         print(board.format(*data))
 
+
 def clear_screen():
     print(chr(27) + "[2J")
 
@@ -138,14 +153,17 @@ def clear_screen():
 def get_symbol(player):
     return {True: Marking.X, False: Marking.O}[player]
 
+
 def redraw(board):
     clear_screen()
     board.draw_board()
+
 
 def change_player(player):
     if player == Marking.X:
         return Marking.O
     return Marking.X
+
 
 board = BoardState()
 board.draw_board()
