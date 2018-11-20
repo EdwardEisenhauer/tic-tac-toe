@@ -1,106 +1,169 @@
 import random
+from enum import Enum
+from itertools import chain
+
+class Layer(Enum):
+    TOP = 1
+    TOP_MIDDLE = 2
+    BOTTOM_MIDDLE = 3
+    BOTTOM = 4
+
+    def __repr__(self):
+        return self.name
+
+    def from_index(idx):
+        if idx == 1:
+            return Layer.TOP
+        elif idx == 2:
+            return Layer.TOP_MIDDLE
+        elif idx == 3:
+            return Layer.BOTTOM_MIDDLE
+        elif idx == 4:
+            return Layer.BOTTOM
+
+class Marking(Enum):
+    X = 1
+    O = 2
+    EMPTY = 3
+
+    def __str__(self):
+        if self == Marking.EMPTY:
+            return " "
+        return self.name
 
 class BoardState:
-    layers = {"top":     [[' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' ']],
-              "top_mid": [[' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' ']],
-              "bot_mid": [[' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' ']],
-              "bottom":  [[' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' '],
-                          [' ', ' ', ' ', ' ']]}
+    layers = {Layer.TOP:     [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]],
+              Layer.TOP_MIDDLE: [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]],
+              Layer.BOTTOM_MIDDLE: [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]],
+              Layer.BOTTOM:  [[Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY],
+                          [Marking.EMPTY, Marking.EMPTY, Marking.EMPTY, Marking.EMPTY]]}
 
-    sums = {"top": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}, "top_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}, "bot_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}, "bottom": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]}}
-    
+    sums = {
+        Layer.TOP: {
+            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]},
+        Layer.TOP_MIDDLE: {
+            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]},
+        Layer.BOTTOM_MIDDLE: {
+            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]},
+        Layer.BOTTOM: {
+            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]}}
+
     def __init__(self):
         print("Board initiated!")
         return
 
     def make_move(self, character, layer, row, column):
-        if self.layers[layer][row][column] is not ' ':
+        if self.layers[layer][row][column] is not Marking.EMPTY:
             raise ValueError
-            return
         self.layers[layer][row][column] = character
 
-        self.sums[layer]['rows'][row] += {'x': 1, 'o': -1}[character]
-        self.sums[layer]['columns'][column] += {'x': 1, 'o': -1}[character]
+        self.sums[layer]['rows'][row] += {Marking.X: 1, Marking.O: -1}[character]
+        self.sums[layer]['columns'][column] += {Marking.X: 1, Marking.O: -1}[character]
         if row == column:
-            self.sums[layer]['diagonal'][0] += {'x': 1, 'o': -1}[character]
+            self.sums[layer]['diagonal'][0] += {Marking.X: 1, Marking.O: -1}[character]
         if (row + column) == 5:
-            self.sums[layer]['diagonal'][1] += {'x': 1, 'o': -1}[character]
+            self.sums[layer]['diagonal'][1] += {Marking.X: 1, Marking.O: -1}[character]
 
         return
 
     def isWin(self):
-        if '4' in str(self.sums):
-            return 'x'
-        if '-4' in str(self.sums):
-            return 'o'
+        if "4" in str(self.sums):
+            return Marking.X
+        if "-4" in str(self.sums):
+            return Marking.O
         else:
             return False
 
     def draw_board(self):
-        print("         ________________")
-        print("        / " + self.layers["top"][0][0] + " / " + self.layers["top"][0][1] + " / " + self.layers["top"][0][2] + " / " + self.layers["top"][0][3] + " /|")
-        print("       /___/___/___/___/ |")
-        print("      / " + self.layers["top"][1][0] + " / " + self.layers["top"][1][1] + " / " + self.layers["top"][1][2] + " / " + self.layers["top"][1][3] + " /  |")
-        print("     /___/___/___/___/   |")
-        print("    / " + self.layers["top"][2][0] + " / " + self.layers["top"][2][1] + " / " + self.layers["top"][2][2] + " / " + self.layers["top"][2][3] + " /    |")
-        print("   /___/___/___/___/     |")
-        print("  / " + self.layers["top"][3][0] + " / " + self.layers["top"][3][1] + " / " + self.layers["top"][3][2] + " / " + self.layers["top"][3][3] + " /      |")
-        print(" /___/___/___/___/       |")
-        print("|       |________|_______|")
-        print("|       / " + self.layers["top_mid"][0][0] + " / " + self.layers["top_mid"][0][1] + " /|" + self.layers["top_mid"][0][2] + " / " + self.layers["top_mid"][0][3] + " /|")
-        print("|      /___/___/_|_/___/ |")
-        print("|     / " + self.layers["top_mid"][1][0] + " / " + self.layers["top_mid"][1][1] + " / " + self.layers["top_mid"][1][2] + "|/ " + self.layers["top_mid"][1][3] + " /  |")
-        print("|    /___/___/___|___/   |")
-        print("|   / " + self.layers["top_mid"][2][0] + " / " + self.layers["top_mid"][2][1] + " / " + self.layers["top_mid"][2][2] + " /|" + self.layers["top_mid"][2][3] + " /    |")
-        print("|  /___/___/___/_|_/     |")
-        print("| / " + self.layers["top_mid"][3][0] + " / " + self.layers["top_mid"][3][1] + " / " + self.layers["top_mid"][3][2] + " / " + self.layers["top_mid"][3][3] + "|/      |")
-        print("|/___/___/___/___|       |")
-        print("|       |________|_______|")
-        print("|       / " + self.layers["bot_mid"][0][0] + " / " + self.layers["bot_mid"][0][1] + " /|" + self.layers["bot_mid"][0][2] + " / " + self.layers["bot_mid"][0][3] + " /|")
-        print("|      /___/___/_|_/___/ |")
-        print("|     / " + self.layers["bot_mid"][1][0] + " / " + self.layers["bot_mid"][1][1] + " / " + self.layers["bot_mid"][1][2] + "|/ " + self.layers["bot_mid"][1][3] + " /  |")
-        print("|    /___/___/___|___/   |")
-        print("|   / " + self.layers["bot_mid"][2][0] + " / " + self.layers["bot_mid"][2][1] + " / " + self.layers["bot_mid"][2][2] + " /|" + self.layers["bot_mid"][2][3] + " /    |")
-        print("|  /___/___/___/_|_/     |")
-        print("| / " + self.layers["bot_mid"][3][0] + " / " + self.layers["bot_mid"][3][1] + " / " + self.layers["bot_mid"][3][2] + " / " + self.layers["bot_mid"][3][3] + "|/      |")
-        print("|/___/___/___/___|       |")
-        print("|       |________|_______|")
-        print("|       / " + self.layers["bottom"][0][0] + " / " + self.layers["bottom"][0][1] + " /|" + self.layers["bottom"][0][2] + " / " + self.layers["bottom"][0][3] + " / ")
-        print("|      /___/___/_|_/___/  ")
-        print("|     / " + self.layers["bottom"][1][0] + " / " + self.layers["bottom"][1][1] + " / " + self.layers["bottom"][1][2] + "|/ " + self.layers["bottom"][1][3] + " /   ")
-        print("|    /___/___/___|___/    ")
-        print("|   / " + self.layers["bottom"][2][0] + " / " + self.layers["bottom"][2][1] + " / " + self.layers["bottom"][2][2] + " /|" + self.layers["bottom"][2][3] + " /     ")
-        print("|  /___/___/___/_|_/      ")
-        print("| / " + self.layers["bottom"][3][0] + " / " + self.layers["bottom"][3][1] + " / " + self.layers["bottom"][3][2] + " / " + self.layers["bottom"][3][3] + "|/       ")
-        print("|/___/___/___/___|        ")
+        board = """
+         ________________
+        / {} / {} / {} / {} /|
+       /___/___/___/___/ |
+      / {} / {} / {} / {} /  |
+     /___/___/___/___/   |
+    / {} / {} / {} / {} /    |
+   /___/___/___/___/     |
+  / {} / {} / {} / {} /      |
+ /___/___/___/___/       |
+|       |________|_______|
+|       / {} / {} /|{} / {} /|
+|      /___/___/_|_/___/ |
+|     / {} / {} / {}|/ {} /  |
+|    /___/___/___|___/   |
+|   / {} / {} / {} /|{} /    |
+|  /___/___/___/_|_/     |
+| / {} / {} / {} / {}|/      |
+|/___/___/___/___|       |
+|       |________|_______|
+|       / {} / {} /|{} / {} /|
+|      /___/___/_|_/___/ |
+|     / {} / {} / {}|/ {} /  |
+|    /___/___/___|___/   |
+|   / {} / {} / {} /|{} /    |
+|  /___/___/___/_|_/     |
+| / {} / {} / {} / {}|/      |
+|/___/___/___/___|       |
+|       |________|_______|
+|       / {} / {} /|{} / {} / 
+|      /___/___/_|_/___/  
+|     / {} / {} / {}|/ {} /   
+|    /___/___/___|___/    
+|   / {} / {} / {} /|{} /     
+|  /___/___/___/_|_/      
+| / {} / {} / {} / {}|/       
+|/___/___/___/___|        
+"""
+        data = []
+        for rows in self.layers.values():
+            for row in rows:
+                for el in row:
+                    data.append(el)
+        print(board.format(*data))
 
+def clear_screen():
+    print(chr(27) + "[2J")
+
+
+def get_symbol(player):
+    return {True: Marking.X, False: Marking.O}[player]
+
+def redraw(board):
+    clear_screen()
+    board.draw_board()
+
+def change_player(player):
+    if player == Marking.X:
+        return Marking.O
+    return Marking.X
 
 board = BoardState()
 board.draw_board()
-player = True
+player = Marking.X
 
-while(True):
-    winner = board.isWin()
-    if winner:
-        print("PLAYER " + winner + " WON")
-        break
+while(not board.isWin()):
+    print("Choose layer, row and column:")
     try:
-        print("Choose layer, row and column:")
-        (layer, row, column) = map(int, input().split(' '))
-        board.make_move({True: 'x', False: 'o'}[player], {1: "top", 2: "top_mid", 3: "bot_mid", 4: "bottom"}[layer], row-1, column-1)
-        print(chr(27) + "[2J")
-        board.draw_board()
-        player = not player
+        layer, row, column = map(int, input().split(' '))
+    except ValueError:
+        print("Provide integers only")
+        continue
+    try:
+        board.make_move(player, Layer.from_index(layer), row-1, column-1)
     except ValueError:
         print("This field is already taken!")
+        continue
+    redraw(board)
+    player = change_player(player)
+
+print("PLAYER " + str(board.isWin()) + " WON")
