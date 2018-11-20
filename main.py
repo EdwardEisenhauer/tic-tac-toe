@@ -46,16 +46,16 @@ class BoardState:
         return
 
     def isWin(self):
-        if '4' in str(self.sums):
-            return 'x'
         if '-4' in str(self.sums):
             return 'o'
+        elif '4' in str(self.sums):
+            return 'x'
         else:
             return False
 
     def draw_board(self):
         print("         ________________")
-        print("        / " + self.layers["top"][0][0] + " / " + self.layers["top"][0][1] + " / " + self.layers["top"][0][2] + " / " + self.layers["top"][0][3] + " /|")
+        print("        / {} / {} / {} / {} /|".format(self.layers["top"][0][0], self.layers["top"][0][1], self.layers["top"][0][2], self.layers["top"][0][3]))
         print("       /___/___/___/___/ |")
         print("      / " + self.layers["top"][1][0] + " / " + self.layers["top"][1][1] + " / " + self.layers["top"][1][2] + " / " + self.layers["top"][1][3] + " /  |")
         print("     /___/___/___/___/   |")
