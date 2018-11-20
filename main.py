@@ -176,6 +176,9 @@ while(not board.isWin()):
     except ValueError:
         print("Provide integers only")
         continue
+    except KeyboardInterrupt:
+        print("\n")
+        exit(0)
     try:
         board.make_move(player, Layer.from_index(layer), row-1, column-1)
     except ValueError:
