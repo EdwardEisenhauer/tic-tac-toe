@@ -1,4 +1,5 @@
 from enum import Enum
+from random import randrange
 
 class Layer(Enum):
     TOP = 1
@@ -97,6 +98,9 @@ class BoardState:
         print("| / " + self.layers["bottom"][3][0] + " / " + self.layers["bottom"][3][1] + " / " + self.layers["bottom"][3][2] + " / " + self.layers["bottom"][3][3] + "|/       ")
         print("|/___/___/___/___|        ")
 
+def make_random_move(board):
+    return randrange(1,4), randrange(1,4), randrange(1,4)
+
 def clear_screen():
     print(chr(27) + "[2J")
 
@@ -117,7 +121,10 @@ while(not board.isWin()):
     print({True: 'x', False: 'o'}[player] + "'s move")
     print("Choose layer, row and column:")
     try:
-        (layer, row, column) = map(int, input().split(' '))
+        if player == False:
+            (layer, row, column) = make_random_move(board)
+        else:
+            (layer, row, column) = map(int, input().split(' '))
     except ValueError:
         print("Provide integers only!")
         continue
