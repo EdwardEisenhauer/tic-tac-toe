@@ -1,3 +1,11 @@
+from enum import Enum
+
+class Layer(Enum):
+    TOP = 1
+    TOP_MIDDLE = 2
+    BOTTOM_MIDDLE = 3
+    BOTTOM = 4
+
 class BoardState:
     layers = {"top":     [[' ', ' ', ' ', ' '],
                           [' ', ' ', ' ', ' '],
@@ -20,30 +28,28 @@ class BoardState:
             "top_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]},
             "bot_mid": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]},
             "bottom": {"rows": [0,0,0,0], "columns": [0,0,0,0], "diagonal": [0,0]},
-            "vertical": [[0,0,0,0],
+            "verticals": [[0,0,0,0],
                          [0,0,0,0],
                          [0,0,0,0],
                          [0,0,0,0]]}
     
     def __init__(self):
         print("Board initiated!")
-        return
 
     def make_move(self, character, layer, row, column):
         if self.layers[layer][row][column] is not ' ':
             raise ValueError
-            return
         self.layers[layer][row][column] = character
+        self._update_sums(character, layer, row, column)
 
+    def _update_sums(self, character, layer, row, column):
         self.sums[layer]['rows'][row] += {'x': 1, 'o': -1}[character]
         self.sums[layer]['columns'][column] += {'x': 1, 'o': -1}[character]
-        self.sums['vertical'][row][column] += {'x': 1, 'o': -1}[character]
+        self.sums['verticals'][row][column] += {'x': 1, 'o': -1}[character]
         if row == column:
             self.sums[layer]['diagonal'][0] += {'x': 1, 'o': -1}[character]
         if (row + column) == 5:
             self.sums[layer]['diagonal'][1] += {'x': 1, 'o': -1}[character]
-
-        return
 
     def isWin(self):
         if '-4' in str(self.sums):
@@ -94,22 +100,39 @@ class BoardState:
 def clear_screen():
     print(chr(27) + "[2J")
 
+def redraw(board):
+    clear_screen()
+    board.draw_board()
+
+def change_player(player):
+    if player == 'x':
+        return 'o'
+    return 'x'
+
 board = BoardState()
 board.draw_board()
 player = True
 
-while(True):
-    winner = board.isWin()
-    if winner:
-        print("PLAYER " + winner + " WON")
-        break
+while(not board.isWin()):
+    print({True: 'x', False: 'o'}[player] + "'s move")
+    print("Choose layer, row and column:")
     try:
-        print({True: 'x', False: 'o'}[player] + "'s move")
-        print("Choose layer, row and column:")
         (layer, row, column) = map(int, input().split(' '))
+    except ValueError:
+        print("Provide integers only!")
+        continue
+    except KeyboardInterrupt:
+        print("\n")
+        exit(0)
+    try:
         board.make_move({True: 'x', False: 'o'}[player], {1: "top", 2: "top_mid", 3: "bot_mid", 4: "bottom"}[layer], row-1, column-1)
-        clear_screen()
-        board.draw_board()
-        player = not player
+    except IndexError:
+        print("The size of the board is 4x4x4!")
+        continue
     except ValueError:
         print("This field is already taken!")
+        continue
+    redraw(board)
+    player = not player
+
+print("PLAYER " + board.isWin() + " WON")
