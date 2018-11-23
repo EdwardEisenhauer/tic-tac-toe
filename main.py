@@ -1,5 +1,6 @@
 from enum import Enum
-from random import randrange
+import random
+import time
 
 class Layer(Enum):
      TOP = 0
@@ -120,11 +121,16 @@ class BoardState:
         print("|/___/___/___/___|        ")
 
 def make_random_move(board):
-    return randrange(1,5), randrange(1,5), randrange(1,5)
+    return [x+1 for x in random.choice(board.get_empty_fields())]
 
-def minimax(new_board, player):
-    
-    avail_spots = get_empty_fields(new_board)
+def make_notrandom_move(board):
+    empty_fields = board.get_empty_fields()
+    heuristic = board.get_sums()
+    for field in empty_fields:
+        layer, row, column = field[0], field[1], field[2]
+        if heuristic[layer]['rows'][row] + heuristic[layer]['columns'][column] > 2:
+            return [x+1 for x in field]
+    return make_random_move(board)
 
 def clear_screen():
     print(chr(27) + "[2J")
@@ -148,7 +154,7 @@ while(not board.isWin()):
     print("Choose layer, row and column:")
     try:
         if player == False:
-            (layer, row, column) = make_random_move(board)
+            (layer, row, column) = make_notrandom_move(board)
             print((layer, row, column))
         else:
             (layer, row, column) = map(int, input().split(' '))
