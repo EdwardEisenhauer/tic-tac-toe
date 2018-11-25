@@ -63,15 +63,21 @@ class BoardState:
             self.sums[layer]['diagonal'][1] += {'x': 1, 'o': -1}[character]
 
     def get_sums(self):
+        # print(self.sums)
         return self.sums
 
     def get_empty_fields(self):
         fields = []
         for layer in self.layers:
-            for row in layer:
-                for field in row:
-                    if field is ' ':
-                        fields.append([self.layers.index(layer),layer.index(row),row.index(field)])
+            print(layer)
+            # for row in layer:
+            #     for field in row:
+            #         if field is ' ':
+            #             fields.append([self.layers.index(layer),layer.index(row),row.index(field)])
+            #             # print(field)
+            #             # print(row)
+            #             # print([self.layers.index(layer),layer.index(row),row.index(field)])
+            #             time.sleep(1)
         return fields
 
     def isWin(self):
@@ -126,9 +132,17 @@ def make_random_move(board):
 def make_notrandom_move(board):
     empty_fields = board.get_empty_fields()
     heuristic = board.get_sums()
+    # for field in empty_fields:
+    #     layer, row, column = field[0], field[1], field[2]
+    #     if heuristic[layer]['rows'][row] + heuristic[layer]['columns'][column] + heuristic['verticals'][row][column] > 4:
+    #         return [x+1 for x in field]
     for field in empty_fields:
         layer, row, column = field[0], field[1], field[2]
-        if heuristic[layer]['rows'][row] + heuristic[layer]['columns'][column] > 2:
+        # if heuristic[layer]['rows'][row] > 2 or heuristic[layer]['columns'][column] > 2 or heuristic['verticals'][row][column] > 2:
+        print("AI considers: " + str(field))
+        print(heuristic['verticals'][row][column])
+        if heuristic['verticals'][row][column] > 2:
+            print("XD")
             return [x+1 for x in field]
     return make_random_move(board)
 
@@ -136,7 +150,7 @@ def clear_screen():
     print(chr(27) + "[2J")
 
 def redraw(board):
-    clear_screen()
+    # clear_screen()
     board.draw_board()
 
 def change_player(player):
@@ -150,12 +164,10 @@ player = True
 
 while(not board.isWin()):
     print({True: 'x', False: 'o'}[player] + "'s move")
-    board.get_empty_fields()
     print("Choose layer, row and column:")
     try:
         if player == False:
             (layer, row, column) = make_notrandom_move(board)
-            print((layer, row, column))
         else:
             (layer, row, column) = map(int, input().split(' '))
     except ValueError:
