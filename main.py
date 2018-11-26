@@ -137,13 +137,11 @@ class BoardState:
 
 def make_random_move(board):
     empty_fields = board.get_empty_fields()
-    print(empty_fields)
     return random.choice(empty_fields)
 
 
 def make_notrandom_move(board):
     empty_fields = board.get_empty_fields()
-    print(empty_fields)
     heuristic = board.get_sums()
     # for field in empty_fields:
     #     layer, row, column = field[0], field[1], field[2]
@@ -151,12 +149,11 @@ def make_notrandom_move(board):
     #         return [x+1 for x in field]
     for field in empty_fields:
         layer, row, column = field[0], field[1], field[2]
-        # if heuristic[layer]['rows'][row] > 2 or heuristic[layer]['columns'][column] > 2 or heuristic['verticals'][row][column] > 2:
-        print("AI considers: " + str(field))
-        print(heuristic['verticals'][row][column])
-        if heuristic['verticals'][row][column] > 2:
-            print("XD")
-            return [x + 1 for x in field]
+        if heuristic[layer]['rows'][row] > 2 or heuristic[layer]['columns'][column] > 2 or heuristic['verticals'][row][column] > 2:
+            print("AI considers: " + str(field))
+            print(heuristic['verticals'][row][column])
+            print("DANGER!")
+            return field
     return make_random_move(board)
 
 
@@ -184,7 +181,7 @@ while not board.isWin():
     print("Choose layer, row and column:")
     try:
         if player == 'o':
-            (layer, row, column) = make_random_move(board)
+            (layer, row, column) = make_notrandom_move(board)
             print(layer, row, column)
         else:
             (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
