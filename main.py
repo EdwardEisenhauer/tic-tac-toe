@@ -1,5 +1,4 @@
 import random
-import time
 
 
 class BoardState:
@@ -69,7 +68,7 @@ class BoardState:
                         empty_fields.append([layer_idx, row_idx, field_idx])
         return empty_fields
 
-    def isWin(self):
+    def is_win(self):
         if '-4' in str(self.sums):
             return 'o'
         elif '4' in str(self.sums):
@@ -79,8 +78,7 @@ class BoardState:
 
     def draw_board(self):
         print("         ________________")
-        print("        / {} / {} / {} / {} /|".format(self.layers[0][0][0], self.layers[0][0][1], self.layers[0][0][2],
-                                                      self.layers[0][0][3]))
+        print("        / {} / {} / {} / {} /|".format(self.layers[0][0][0], self.layers[0][0][1], self.layers[0][0][2], self.layers[0][0][3]))
         print("       /___/___/___/___/ |")
         print("      / " + self.layers[0][1][0] + " / " + self.layers[0][1][1] + " / " + self.layers[0][1][2] + " / " +
               self.layers[0][1][3] + " /  |")
@@ -143,18 +141,22 @@ def make_random_move(board):
 def make_notrandom_move(board):
     empty_fields = board.get_empty_fields()
     heuristic = board.get_sums()
-    # for field in empty_fields:
-    #     layer, row, column = field[0], field[1], field[2]
-    #     if heuristic[layer]['rows'][row] + heuristic[layer]['columns'][column] + heuristic['verticals'][row][column] > 4:
-    #         return [x+1 for x in field]
-    for field in empty_fields:
+    optimal_field = [0,0]
+    for idx, field in enumerate(empty_fields):
         layer, row, column = field[0], field[1], field[2]
+        current_heuristic = heuristic[layer]['rows'][row] + heuristic[layer]['columns'][column] + heuristic['verticals'][row][column]
+        if current_heuristic < optimal_field[1]:
+            optimal_field = [idx, current_heuristic]
         if heuristic[layer]['rows'][row] > 2 or heuristic[layer]['columns'][column] > 2 or heuristic['verticals'][row][column] > 2:
-            print("AI considers: " + str(field))
-            print(heuristic['verticals'][row][column])
-            print("DANGER!")
             return field
-    return make_random_move(board)
+        if row == column:
+            if heuristic[layer]['diagonal'][0] > 2:
+                return field
+        if row + column == 5:
+            if heuristic[layer]['diagonal'][1] > 2:
+                return field
+    return empty_fields[optimal_field[0]]
+    # return make_random_move(board)
 
 
 def clear_screen():
@@ -176,7 +178,7 @@ board = BoardState()
 board.draw_board()
 player = 'x'
 
-while not board.isWin():
+while not board.is_win():
     print(player + "'s move")
     print("Choose layer, row and column:")
     try:
@@ -203,4 +205,4 @@ while not board.isWin():
     redraw(board)
     player = change_player(player)
 
-print("PLAYER " + board.isWin() + " WON")
+print("PLAYER " + board.is_win() + " WON")
