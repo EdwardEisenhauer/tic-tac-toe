@@ -1,4 +1,5 @@
 import random
+import types
 
 
 class BoardState:
@@ -58,6 +59,17 @@ class BoardState:
     def get_sums(self):
         # print(self.sums)
         return self.sums
+
+    def evaluate(self):
+        score = 0
+        for layer in range(4):
+            for key, val in self.sums[layer].items():
+                for record in val:
+                    score = score + record*record*(1, -1)[record < 0]
+        for row in self.sums["verticals"]:
+            for record in row:
+                score = score + record*record*(1, -1)[record < 0]
+        return score
 
     def get_empty_fields(self):
         empty_fields = []
@@ -139,6 +151,7 @@ def make_random_move(board):
 
 
 def make_notrandom_move(board):
+    print(board.evaluate())
     empty_fields = board.get_empty_fields()
     heuristic = board.get_sums()
     optimal_field = [0,0]
@@ -159,12 +172,54 @@ def make_notrandom_move(board):
     # return make_random_move(board)
 
 
+def minimax(board, depth, is_maximizing):
+    new_board = board
+    winner = board.is_win()
+    empty_fields = board.get_empty_fields()
+    if winner:
+        return winner
+    if not board.get_empty_fields():
+        return 'tie'
+    if is_maximizing:
+        player = 'o'
+        best = -1000
+        for idx, field in enumerate(empty_fields):
+            layer, row, column = field[0], field[1], field[2]
+            new_board.make_move(player, layer, row, column)
+            print("HERE")
+            # print(minimax(new_board, depth+1, not is_maximizing))
+            print("IT")
+            best = max(best, minimax(new_board, depth+1, not is_maximizing))
+            print(best)
+        return best
+    else:
+        player = 'x'
+        best = 1000
+        for idx, field in enumerate(empty_fields):
+            layer, row, column = field[0], field[1], field[2]
+            new_board.make_move(player, layer, row, column)
+            best = min(best, minimax(new_board, depth+1, not is_maximizing))
+        return best
+
+
+def make_minmax_move(board):
+    best = -1000
+    new_board = board
+    for idx, field in enumerate(board.get_empty_fields()):
+        layer, row, column = field[0], field[1], field[2]
+        new_board.make_move(player, layer, row, column)
+        move_val = minimax(new_board, 0, False)
+        if move_val > best:
+            best_move = field
+    return best_move
+
+
 def clear_screen():
     print(chr(27) + "[2J")
 
 
 def redraw(board):
-    # clear_screen()
+    clear_screen()
     board.draw_board()
 
 
