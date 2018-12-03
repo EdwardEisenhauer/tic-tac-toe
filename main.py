@@ -1,54 +1,54 @@
 import random
 import math
 import copy
+import inspect
 
 
 class Board:
-    board_state = [
-        [[' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' ']],
-
-        [[' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' ']],
-
-        [[' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' ']],
-
-        [[' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' '],
-         [' ', ' ', ' ', ' ']]]
-
-    field_heuristics = [
-        [[0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0]],
-
-        [[0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0]],
-
-        [[0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0]],
-
-        [[0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0],
-         [0, 0, 0, 0]]]
-
-    wins = []
-
     def __init__(self):
+        self.board_state = [
+            [[' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' ']],
+
+            [[' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' ']],
+
+            [[' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' ']],
+
+            [[' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' '],
+             [' ', ' ', ' ', ' ']]]
+
+        self.field_heuristics = [
+            [[0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]],
+
+            [[0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]],
+
+            [[0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]],
+
+            [[0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]]]
+
+        self.wins = []
         for i in range(72):
             self.wins.append(0)
         return
@@ -105,6 +105,7 @@ class Board:
         return fields
 
     def make_move(self, player, layer, row, column):
+        # print("call")
         if self.board_state[layer][row][column] is not ' ':
             raise ValueError
         self.board_state[layer][row][column] = player
@@ -231,7 +232,7 @@ def make_best_move(board):
 
 
 def minimax(board, player, depth):
-    print(depth)
+    # print(depth)
     new_board = copy.deepcopy(board)
     if new_board.is_win():
         return {'x': -math.inf, 'o': math.inf}[new_board.is_win()]
@@ -246,8 +247,8 @@ def minimax(board, player, depth):
             value = minimax(next_board, 'x', depth-1)
             if value == math.inf:
                 return [value, field]
-            print(type(value))
-            print(value)
+            # print(type(value))
+            # print(value)
             if value[0] > best[0]:
                 best = [value[0], field]
     else:
@@ -256,13 +257,17 @@ def minimax(board, player, depth):
             next_board = copy.deepcopy(new_board)
             next_board.make_move(player, field[0], field[1], field[2])
             value = minimax(next_board, 'o', depth-1)
+            if value == -math.inf:
+                return [value, field]
+            if not type(value) == type(list()):
+                print(value, best)
             if value[0] < best[0]:
                 best = [value[0], field]
     return best
 
 
 def make_minimax_move(board, player):
-    score, move = minimax(board, player, 3)
+    score, move = minimax(board, player, 2)
     return move
 
 
@@ -281,12 +286,16 @@ while not board.is_win():
     print("Choose layer, row and column:")
     try:
         if player == 'o':
-            layer, row, column = make_minimax_move(board, player)
+            layer, row, column = make_minimax_move(copy.deepcopy(board), player)
+            # print("HI")
+            # print(board.board_state)
             print(layer, row, column)
         else:
             (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
     except ValueError:
         print("Provide integers only!")
+        # import pdb
+        # pdb.post_mortem()
         continue
     except KeyboardInterrupt:
         print("\n")
