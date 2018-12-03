@@ -232,7 +232,6 @@ def make_best_move(board):
 
 
 def minimax(board, player, depth):
-    # print(depth)
     new_board = copy.deepcopy(board)
     if new_board.is_win():
         return {'x': -math.inf, 'o': math.inf}[new_board.is_win()]
@@ -247,8 +246,6 @@ def minimax(board, player, depth):
             value = minimax(next_board, 'x', depth-1)
             if value == math.inf:
                 return [value, field]
-            # print(type(value))
-            # print(value)
             if value[0] > best[0]:
                 best = [value[0], field]
     else:
@@ -263,11 +260,16 @@ def minimax(board, player, depth):
                 print(value, best)
             if value[0] < best[0]:
                 best = [value[0], field]
+    if best[0] == -math.inf:
+        return next_board.get_highest_empty_field()
+    elif best[0] == math.inf:
+        return next_board.get_highest_empty_field()
     return best
 
 
 def make_minimax_move(board, player):
     score, move = minimax(board, player, 2)
+    print(score, move)
     return move
 
 
@@ -287,15 +289,13 @@ while not board.is_win():
     try:
         if player == 'o':
             layer, row, column = make_minimax_move(copy.deepcopy(board), player)
-            # print("HI")
-            # print(board.board_state)
             print(layer, row, column)
         else:
-            (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
+            layer, row, column = make_minimax_move(copy.deepcopy(board), player)
+            print(layer, row, column)
+            # (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
     except ValueError:
         print("Provide integers only!")
-        # import pdb
-        # pdb.post_mortem()
         continue
     except KeyboardInterrupt:
         print("\n")
@@ -310,7 +310,7 @@ while not board.is_win():
         continue
 
     board.draw_board()
-    board.draw_heuristics()
+    # board.draw_heuristics()
     player = change_player(player)
 
 print("PLAYER " + board.is_win() + " WON")
