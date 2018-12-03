@@ -1,5 +1,6 @@
 import random
 import math
+import copy
 
 
 class Board:
@@ -77,7 +78,7 @@ class Board:
             field_heuristic = self.field_heuristics[field[0]][field[1]][field[2]]
             if field_heuristic > highest_field[0]:
                 highest_field = [field_heuristic, field]
-        return highest_field[1]
+        return highest_field
 
     def get_vertical_fields(self, field):
         row, column = field[1], field[2]
@@ -119,6 +120,10 @@ class Board:
             self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
         return
 
+    def _modify_win(self, player, idx):
+        old = self.wins[idx]
+
+
     def _update_wins(self, player, layer, row, column):
         self.wins[4 * row + column] = self.wins[4 * row + column] + {'x': -1, 'o': 1}[player]
         self.wins[16 + 4 * layer + column] = self.wins[16 + 4 * layer + column] + {'x': -1, 'o': 1}[player]
@@ -127,10 +132,10 @@ class Board:
             self.wins[48 + layer] += {'x': -1, 'o': 1}[player]
         if (row + column) == 5:
             self.wins[52 + layer] += {'x': -1, 'o': 1}[player]
-        print(self.wins[0:16])
-        print(self.wins[16:32])
-        print(self.wins[32:48])
-        print(self.wins[48:56])
+        # print(self.wins[0:16])
+        # print(self.wins[16:32])
+        # print(self.wins[32:48])
+        # print(self.wins[48:56])
 
     def is_win(self):
         if '-4' in str(self.wins):
@@ -226,8 +231,39 @@ def make_best_move(board):
 
 
 def minimax(board, player, depth):
-    new_board = board
+    print(depth)
+    new_board = copy.deepcopy(board)
+    if new_board.is_win():
+        return {'x': -math.inf, 'o': math.inf}[new_board.is_win()]
+    if depth == 0:
+        return new_board.get_highest_empty_field()
 
+    if player == 'o':
+        best = [-math.inf, []]
+        for field in new_board.get_empty_fields():
+            next_board = copy.deepcopy(new_board)
+            next_board.make_move(player, field[0], field[1], field[2])
+            value = minimax(next_board, 'x', depth-1)
+            if value == math.inf:
+                return [value, field]
+            print(type(value))
+            print(value)
+            if value[0] > best[0]:
+                best = [value[0], field]
+    else:
+        best = [math.inf, []]
+        for field in new_board.get_empty_fields():
+            next_board = copy.deepcopy(new_board)
+            next_board.make_move(player, field[0], field[1], field[2])
+            value = minimax(next_board, 'o', depth-1)
+            if value[0] < best[0]:
+                best = [value[0], field]
+    return best
+
+
+def make_minimax_move(board, player):
+    score, move = minimax(board, player, 3)
+    return move
 
 
 def change_player(player):
@@ -245,7 +281,7 @@ while not board.is_win():
     print("Choose layer, row and column:")
     try:
         if player == 'o':
-            layer, row, column = make_best_move(board)
+            layer, row, column = make_minimax_move(board, player)
             print(layer, row, column)
         else:
             (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
