@@ -1,9 +1,9 @@
 import random
-import types
+import math
 
 
-class BoardState:
-    layers = [
+class Board:
+    board_state = [
         [[' ', ' ', ' ', ' '],
          [' ', ' ', ' ', ' '],
          [' ', ' ', ' ', ' '],
@@ -24,125 +24,196 @@ class BoardState:
          [' ', ' ', ' ', ' '],
          [' ', ' ', ' ', ' ']]]
 
-    sums = {
-        0: {
-            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]},
-        1: {
-            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]},
-        2: {
-            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]},
-        3: {
-            "rows": [0, 0, 0, 0], "columns": [0, 0, 0, 0], "diagonal": [0, 0]},
-        "verticals": [[0, 0, 0, 0],
-                      [0, 0, 0, 0],
-                      [0, 0, 0, 0],
-                      [0, 0, 0, 0]]}
+    field_heuristics = [
+        [[0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0]],
+
+        [[0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0]],
+
+        [[0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0]],
+
+        [[0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0],
+         [0, 0, 0, 0]]]
+
+    wins = []
 
     def __init__(self):
-        print("Board initiated!")
-
-    def make_move(self, character, layer, row, column):
-        if self.layers[layer][row][column] is not ' ':
-            raise ValueError
-        self.layers[layer][row][column] = character
-        self._update_sums(character, layer, row, column)
-
-    def _update_sums(self, character, layer, row, column):
-        self.sums[layer]['rows'][row] += {'x': 1, 'o': -1}[character]
-        self.sums[layer]['columns'][column] += {'x': 1, 'o': -1}[character]
-        self.sums['verticals'][row][column] += {'x': 1, 'o': -1}[character]
-        if row == column:
-            self.sums[layer]['diagonal'][0] += {'x': 1, 'o': -1}[character]
-        if (row + column) == 5:
-            self.sums[layer]['diagonal'][1] += {'x': 1, 'o': -1}[character]
-
-    def get_sums(self):
-        # print(self.sums)
-        return self.sums
-
-    def evaluate(self):
-        score = 0
-        for layer in range(4):
-            for key, val in self.sums[layer].items():
-                for record in val:
-                    score = score + record*record*(1, -1)[record < 0]
-        for row in self.sums["verticals"]:
-            for record in row:
-                score = score + record*record*(1, -1)[record < 0]
-        return score
+        for i in range(72):
+            self.wins.append(0)
+        return
 
     def get_empty_fields(self):
         empty_fields = []
-        for layer_idx, layer in enumerate(self.layers):
+        for layer_idx, layer in enumerate(self.board_state):
             for row_idx, row in enumerate(layer):
-                for field_idx, field in enumerate(row):
+                for col_idx, field in enumerate(row):
                     if field is ' ':
-                        empty_fields.append([layer_idx, row_idx, field_idx])
+                        empty_fields.append([layer_idx, row_idx, col_idx])
         return empty_fields
 
+    def get_lowest_empty_field(self):
+        empty_fields = self.get_empty_fields()
+        lowest_field = [math.inf, empty_fields[0]]
+        for idx, field in enumerate(self.get_empty_fields()):
+            field_heuristic = self.field_heuristics[field[0]][field[1]][field[2]]
+            if  field_heuristic< lowest_field[0]:
+                lowest_field = [field_heuristic, field]
+        return lowest_field[1]
+
+    def get_highest_empty_field(self):
+        empty_fields = self.get_empty_fields()
+        highest_field = [-math.inf, empty_fields[0]]
+        for idx, field in enumerate(self.get_empty_fields()):
+            field_heuristic = self.field_heuristics[field[0]][field[1]][field[2]]
+            if field_heuristic > highest_field[0]:
+                highest_field = [field_heuristic, field]
+        return highest_field[1]
+
+    def get_vertical_fields(self, field):
+        row, column = field[1], field[2]
+        fields = []
+        for z in range(4):
+            # print([z, row, column])
+            fields.append([z, row, column])
+        return fields
+
+    def get_column_fields(self, field):
+        layer, column = field[0], field[2]
+        fields = []
+        for y in range(4):
+            # print([layer, y, column])
+            fields.append([layer, y, column])
+        return fields
+
+    def get_row_fields(self, field):
+        layer, row = field[0], field[1]
+        fields = []
+        for x in range(4):
+            # print([layer, row, x])
+            fields.append([layer, row, x])
+        return fields
+
+    def make_move(self, player, layer, row, column):
+        if self.board_state[layer][row][column] is not ' ':
+            raise ValueError
+        self.board_state[layer][row][column] = player
+        self._update_field_heuristic(player, layer, row, column)
+        self._update_wins(player, layer, row, column)
+
+    def _update_field_heuristic(self, player, layer, row, column):
+        for field in self.get_vertical_fields([layer, row, column]):
+            self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
+        for field in self.get_row_fields([layer, row, column]):
+            self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
+        for field in self.get_column_fields([layer, row, column]):
+            self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
+        return
+
+    def _update_wins(self, player, layer, row, column):
+        self.wins[4 * row + column] = self.wins[4 * row + column] + {'x': -1, 'o': 1}[player]
+        self.wins[16 + 4 * layer + column] = self.wins[16 + 4 * layer + column] + {'x': -1, 'o': 1}[player]
+        self.wins[32 + 4 * layer + row] = self.wins[32 + 4 * layer + row] + {'x': -1, 'o': 1}[player]
+        if row == column:
+            self.wins[48 + layer] += {'x': -1, 'o': 1}[player]
+        if (row + column) == 5:
+            self.wins[52 + layer] += {'x': -1, 'o': 1}[player]
+        print(self.wins[0:16])
+        print(self.wins[16:32])
+        print(self.wins[32:48])
+        print(self.wins[48:56])
+
     def is_win(self):
-        if '-4' in str(self.sums):
-            return 'o'
-        elif '4' in str(self.sums):
+        if '-4' in str(self.wins):
             return 'x'
+        elif '4' in str(self.wins):
+            return 'o'
         else:
             return False
 
     def draw_board(self):
         print("         ________________")
-        print("        / {} / {} / {} / {} /|".format(self.layers[0][0][0], self.layers[0][0][1], self.layers[0][0][2], self.layers[0][0][3]))
+        print("        / {} / {} / {} / {} /|".format(self.board_state[0][0][0], self.board_state[0][0][1], self.board_state[0][0][2],
+                                                      self.board_state[0][0][3]))
         print("       /___/___/___/___/ |")
-        print("      / " + self.layers[0][1][0] + " / " + self.layers[0][1][1] + " / " + self.layers[0][1][2] + " / " +
-              self.layers[0][1][3] + " /  |")
+        print("      / {} / {} / {} / {} /  |".format(self.board_state[0][1][0], self.board_state[0][1][1], self.board_state[0][1][2], self.board_state[0][1][3]))
         print("     /___/___/___/___/   |")
-        print("    / " + self.layers[0][2][0] + " / " + self.layers[0][2][1] + " / " + self.layers[0][2][2] + " / " +
-              self.layers[0][2][3] + " /    |")
+        print("    / " + self.board_state[0][2][0] + " / " + self.board_state[0][2][1] + " / " + self.board_state[0][2][2] + " / " +
+              self.board_state[0][2][3] + " /    |")
         print("   /___/___/___/___/     |")
-        print("  / " + self.layers[0][3][0] + " / " + self.layers[0][3][1] + " / " + self.layers[0][3][2] + " / " +
-              self.layers[0][3][3] + " /      |")
+        print("  / " + self.board_state[0][3][0] + " / " + self.board_state[0][3][1] + " / " + self.board_state[0][3][2] + " / " +
+              self.board_state[0][3][3] + " /      |")
         print(" /___/___/___/___/       |")
         print("|       |________|_______|")
         print(
-            "|       / " + self.layers[1][0][0] + " / " + self.layers[1][0][1] + " /|" + self.layers[1][0][2] + " / " +
-            self.layers[1][0][3] + " /|")
+            "|       / " + self.board_state[1][0][0] + " / " + self.board_state[1][0][1] + " /|" + self.board_state[1][0][2] + " / " +
+            self.board_state[1][0][3] + " /|")
         print("|      /___/___/_|_/___/ |")
-        print("|     / " + self.layers[1][1][0] + " / " + self.layers[1][1][1] + " / " + self.layers[1][1][2] + "|/ " +
-              self.layers[1][1][3] + " /  |")
+        print("|     / " + self.board_state[1][1][0] + " / " + self.board_state[1][1][1] + " / " + self.board_state[1][1][2] + "|/ " +
+              self.board_state[1][1][3] + " /  |")
         print("|    /___/___/___|___/   |")
-        print("|   / " + self.layers[1][2][0] + " / " + self.layers[1][2][1] + " / " + self.layers[1][2][2] + " /|" +
-              self.layers[1][2][3] + " /    |")
+        print("|   / " + self.board_state[1][2][0] + " / " + self.board_state[1][2][1] + " / " + self.board_state[1][2][2] + " /|" +
+              self.board_state[1][2][3] + " /    |")
         print("|  /___/___/___/_|_/     |")
-        print("| / " + self.layers[1][3][0] + " / " + self.layers[1][3][1] + " / " + self.layers[1][3][2] + " / " +
-              self.layers[1][3][3] + "|/      |")
+        print("| / " + self.board_state[1][3][0] + " / " + self.board_state[1][3][1] + " / " + self.board_state[1][3][2] + " / " +
+              self.board_state[1][3][3] + "|/      |")
         print("|/___/___/___/___|       |")
         print("|       |________|_______|")
         print(
-            "|       / " + self.layers[2][0][0] + " / " + self.layers[2][0][1] + " /|" + self.layers[2][0][2] + " / " +
-            self.layers[2][0][3] + " /|")
+            "|       / " + self.board_state[2][0][0] + " / " + self.board_state[2][0][1] + " /|" + self.board_state[2][0][2] + " / " +
+            self.board_state[2][0][3] + " /|")
         print("|      /___/___/_|_/___/ |")
-        print("|     / " + self.layers[2][1][0] + " / " + self.layers[2][1][1] + " / " + self.layers[2][1][2] + "|/ " +
-              self.layers[2][1][3] + " /  |")
+        print("|     / " + self.board_state[2][1][0] + " / " + self.board_state[2][1][1] + " / " + self.board_state[2][1][2] + "|/ " +
+              self.board_state[2][1][3] + " /  |")
         print("|    /___/___/___|___/   |")
-        print("|   / " + self.layers[2][2][0] + " / " + self.layers[2][2][1] + " / " + self.layers[2][2][2] + " /|" +
-              self.layers[2][2][3] + " /    |")
+        print("|   / " + self.board_state[2][2][0] + " / " + self.board_state[2][2][1] + " / " + self.board_state[2][2][2] + " /|" +
+              self.board_state[2][2][3] + " /    |")
         print("|  /___/___/___/_|_/     |")
-        print("| / " + self.layers[2][3][0] + " / " + self.layers[2][3][1] + " / " + self.layers[2][3][2] + " / " +
-              self.layers[2][3][3] + "|/      |")
+        print("| / " + self.board_state[2][3][0] + " / " + self.board_state[2][3][1] + " / " + self.board_state[2][3][2] + " / " +
+              self.board_state[2][3][3] + "|/      |")
         print("|/___/___/___/___|       |")
         print("|       |________|_______|")
         print(
-            "|       / " + self.layers[3][0][0] + " / " + self.layers[3][0][1] + " /|" + self.layers[3][0][2] + " / " +
-            self.layers[3][0][3] + " / ")
+            "|       / " + self.board_state[3][0][0] + " / " + self.board_state[3][0][1] + " /|" + self.board_state[3][0][2] + " / " +
+            self.board_state[3][0][3] + " / ")
         print("|      /___/___/_|_/___/  ")
-        print("|     / " + self.layers[3][1][0] + " / " + self.layers[3][1][1] + " / " + self.layers[3][1][2] + "|/ " +
-              self.layers[3][1][3] + " /   ")
+        print("|     / " + self.board_state[3][1][0] + " / " + self.board_state[3][1][1] + " / " + self.board_state[3][1][2] + "|/ " +
+              self.board_state[3][1][3] + " /   ")
         print("|    /___/___/___|___/    ")
-        print("|   / " + self.layers[3][2][0] + " / " + self.layers[3][2][1] + " / " + self.layers[3][2][2] + " /|" +
-              self.layers[3][2][3] + " /     ")
+        print("|   / " + self.board_state[3][2][0] + " / " + self.board_state[3][2][1] + " / " + self.board_state[3][2][2] + " /|" +
+              self.board_state[3][2][3] + " /     ")
         print("|  /___/___/___/_|_/      ")
-        print("| / " + self.layers[3][3][0] + " / " + self.layers[3][3][1] + " / " + self.layers[3][3][2] + " / " +
-              self.layers[3][3][3] + "|/       ")
+        print("| / " + self.board_state[3][3][0] + " / " + self.board_state[3][3][1] + " / " + self.board_state[3][3][2] + " / " +
+              self.board_state[3][3][3] + "|/       ")
         print("|/___/___/___/___|        ")
+
+    def draw_heuristics(self):
+        print("         ________________")
+        print("        / {} / {} / {} / {} /|".format(self.field_heuristics[0][0][0], self.field_heuristics[0][0][1],
+                                                      self.field_heuristics[0][0][2],
+                                                      self.field_heuristics[0][0][3]))
+        print("       /___/___/___/___/ |")
+        print("      / {} / {} / {} / {} /  |".format(self.field_heuristics[0][1][0], self.field_heuristics[0][1][1],
+                                                      self.field_heuristics[0][1][2], self.field_heuristics[0][1][3]))
+        print("     /___/___/___/___/   |")
+        print("    / {} / {} / {} / {} /    |".format(self.field_heuristics[0][2][0], self.field_heuristics[0][2][1], self.field_heuristics[0][2][2], self.field_heuristics[0][2][3]))
+        print("   /___/___/___/___/     |")
+        print("  / {} / {} / {} / {} /      |".format(self.field_heuristics[0][3][0], self.field_heuristics[0][3][1], self.field_heuristics[0][3][2], self.field_heuristics[0][3][3]))
+        print(" /___/___/___/___/       |")
+        print("|       |________|_______|")
+        print("|       / {} / {} /|{} / {} /|".format(self.field_heuristics[1][0][0], self.field_heuristics[1][0][1], self.field_heuristics[1][0][2], self.field_heuristics[1][0][3]))
+        print("|      /___/___/_|_/___/ |")
+        print(            "|     / {} / {} / {}|/ {} /  |".format(self.field_heuristics[1][1][0], self.field_heuristics[1][1][1], self.field_heuristics[1][1][2], self.field_heuristics[1][1][3]))
+        print("|    /___/___/___|___/   |")
 
 
 def make_random_move(board):
@@ -150,77 +221,13 @@ def make_random_move(board):
     return random.choice(empty_fields)
 
 
-def make_notrandom_move(board):
-    print(board.evaluate())
-    empty_fields = board.get_empty_fields()
-    heuristic = board.get_sums()
-    optimal_field = [0,0]
-    for idx, field in enumerate(empty_fields):
-        layer, row, column = field[0], field[1], field[2]
-        current_heuristic = heuristic[layer]['rows'][row] + heuristic[layer]['columns'][column] + heuristic['verticals'][row][column]
-        if current_heuristic < optimal_field[1]:
-            optimal_field = [idx, current_heuristic]
-        if heuristic[layer]['rows'][row] > 2 or heuristic[layer]['columns'][column] > 2 or heuristic['verticals'][row][column] > 2:
-            return field
-        if row == column:
-            if heuristic[layer]['diagonal'][0] > 2:
-                return field
-        if row + column == 5:
-            if heuristic[layer]['diagonal'][1] > 2:
-                return field
-    return empty_fields[optimal_field[0]]
-    # return make_random_move(board)
+def make_best_move(board):
+    return board.get_highest_empty_field()
 
 
-def minimax(board, depth, is_maximizing):
+def minimax(board, player, depth):
     new_board = board
-    winner = board.is_win()
-    empty_fields = board.get_empty_fields()
-    if winner:
-        return winner
-    if not board.get_empty_fields():
-        return 'tie'
-    if is_maximizing:
-        player = 'o'
-        best = -1000
-        for idx, field in enumerate(empty_fields):
-            layer, row, column = field[0], field[1], field[2]
-            new_board.make_move(player, layer, row, column)
-            print("HERE")
-            # print(minimax(new_board, depth+1, not is_maximizing))
-            print("IT")
-            best = max(best, minimax(new_board, depth+1, not is_maximizing))
-            print(best)
-        return best
-    else:
-        player = 'x'
-        best = 1000
-        for idx, field in enumerate(empty_fields):
-            layer, row, column = field[0], field[1], field[2]
-            new_board.make_move(player, layer, row, column)
-            best = min(best, minimax(new_board, depth+1, not is_maximizing))
-        return best
 
-
-def make_minmax_move(board):
-    best = -1000
-    new_board = board
-    for idx, field in enumerate(board.get_empty_fields()):
-        layer, row, column = field[0], field[1], field[2]
-        new_board.make_move(player, layer, row, column)
-        move_val = minimax(new_board, 0, False)
-        if move_val > best:
-            best_move = field
-    return best_move
-
-
-def clear_screen():
-    print(chr(27) + "[2J")
-
-
-def redraw(board):
-    clear_screen()
-    board.draw_board()
 
 
 def change_player(player):
@@ -229,16 +236,16 @@ def change_player(player):
     return 'x'
 
 
-board = BoardState()
-board.draw_board()
 player = 'x'
+board = Board()
+board.draw_board()
 
 while not board.is_win():
     print(player + "'s move")
     print("Choose layer, row and column:")
     try:
         if player == 'o':
-            (layer, row, column) = make_notrandom_move(board)
+            layer, row, column = make_best_move(board)
             print(layer, row, column)
         else:
             (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
@@ -257,7 +264,8 @@ while not board.is_win():
         print("This field is already taken!")
         continue
 
-    redraw(board)
+    board.draw_board()
+    board.draw_heuristics()
     player = change_player(player)
 
 print("PLAYER " + board.is_win() + " WON")
