@@ -49,7 +49,7 @@ class Board:
              [0, 0, 0, 0]]]
 
         self.wins = []
-        for i in range(72):
+        for i in range(76):
             self.wins.append(0)
         return
 
@@ -104,8 +104,10 @@ class Board:
             fields.append([layer, row, x])
         return fields
 
+    # def get_diagonal_fields(self, field):
+        
+
     def make_move(self, player, layer, row, column):
-        # print("call")
         if self.board_state[layer][row][column] is not ' ':
             raise ValueError
         self.board_state[layer][row][column] = player
@@ -121,22 +123,30 @@ class Board:
             self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
         return
 
-    def _modify_win(self, player, idx):
-        old = self.wins[idx]
-
-
     def _update_wins(self, player, layer, row, column):
         self.wins[4 * row + column] = self.wins[4 * row + column] + {'x': -1, 'o': 1}[player]
         self.wins[16 + 4 * layer + column] = self.wins[16 + 4 * layer + column] + {'x': -1, 'o': 1}[player]
         self.wins[32 + 4 * layer + row] = self.wins[32 + 4 * layer + row] + {'x': -1, 'o': 1}[player]
         if row == column:
             self.wins[48 + layer] += {'x': -1, 'o': 1}[player]
-        if (row + column) == 5:
+        if (row + column) == 3:
             self.wins[52 + layer] += {'x': -1, 'o': 1}[player]
-        # print(self.wins[0:16])
-        # print(self.wins[16:32])
-        # print(self.wins[32:48])
-        # print(self.wins[48:56])
+        if layer == column:
+            self.wins[56 + row] += {'x': -1, 'o': 1}[player]
+        if (layer + column) == 3:
+            self.wins[60 + row] += {'x': -1, 'o': 1}[player]
+        if layer == row:
+            self.wins[64 + column] += {'x': -1, 'o': 1}[player]
+        if (layer + row) == 3:
+            self.wins[68 + column] += {'x': -1, 'o': 1}[player]
+        if layer == row == column:
+            self.wins[72] += {'x': -1, 'o': 1}[player]
+        if layer == row and row + column == 3:
+            self.wins[73] += {'x': -1, 'o': 1}[player]
+        if row == column and layer + row == 3:
+            self.wins[74] += {'x': -1, 'o': 1}[player]
+        if layer == column and layer + row == 3:
+            self.wins[75] += {'x': -1, 'o': 1}[player]
 
     def is_win(self):
         if '-4' in str(self.wins):
@@ -279,6 +289,15 @@ def change_player(player):
     return 'x'
 
 
+def clear_screen():
+    print(chr(27) + "[2J")
+
+
+def redraw(board):
+    clear_screen()
+    board.draw_board()
+
+
 player = 'x'
 board = Board()
 board.draw_board()
@@ -288,12 +307,13 @@ while not board.is_win():
     print("Choose layer, row and column:")
     try:
         if player == 'o':
+            print("Calculating move...")
             layer, row, column = make_minimax_move(copy.deepcopy(board), player)
             print(layer, row, column)
         else:
-            layer, row, column = make_minimax_move(copy.deepcopy(board), player)
-            print(layer, row, column)
-            # (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
+            # layer, row, column = make_minimax_move(copy.deepcopy(board), player)
+            # print(layer, row, column)
+            (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
     except ValueError:
         print("Provide integers only!")
         continue
@@ -309,7 +329,7 @@ while not board.is_win():
         print("This field is already taken!")
         continue
 
-    board.draw_board()
+    redraw(board)
     # board.draw_heuristics()
     player = change_player(player)
 
