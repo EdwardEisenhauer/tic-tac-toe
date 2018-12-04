@@ -1,7 +1,7 @@
 import random
 import math
 import copy
-import inspect
+import sys
 
 
 class Board:
@@ -188,24 +188,25 @@ class Board:
 
     def draw_board(self):
         print("         ________________")
-        print("        / {} / {} / {} / {} /|".format(self.board_state[0][0][0], self.board_state[0][0][1], self.board_state[0][0][2],
+        print("        / {} / {} / {} / {} /|".format(self.board_state[0][0][0], self.board_state[0][0][1],
+                                                      self.board_state[0][0][2],
                                                       self.board_state[0][0][3]))
         print("       /___/___/___/___/ |")
-        print("      / {} / {} / {} / {} /  |".format(self.board_state[0][1][0], self.board_state[0][1][1], self.board_state[0][1][2], self.board_state[0][1][3]))
+        print("      / {} / {} / {} / {} /  |".format(self.board_state[0][1][0], self.board_state[0][1][1],
+                                                      self.board_state[0][1][2], self.board_state[0][1][3]))
         print("     /___/___/___/___/   |")
-        print("    / " + self.board_state[0][2][0] + " / " + self.board_state[0][2][1] + " / " + self.board_state[0][2][2] + " / " +
-              self.board_state[0][2][3] + " /    |")
+        print("    / {} / {} / {} / {} /    |".format(self.board_state[0][2][0], self.board_state[0][2][1],
+                                                      self.board_state[0][2][2], self.board_state[0][2][3]))
         print("   /___/___/___/___/     |")
-        print("  / " + self.board_state[0][3][0] + " / " + self.board_state[0][3][1] + " / " + self.board_state[0][3][2] + " / " +
-              self.board_state[0][3][3] + " /      |")
+        print("  / {} / {} / {} / {} /      |".format(self.board_state[0][3][0], self.board_state[0][3][1],
+                                                      self.board_state[0][3][2], self.board_state[0][3][3]))
         print(" /___/___/___/___/       |")
         print("|       |________|_______|")
-        print(
-            "|       / " + self.board_state[1][0][0] + " / " + self.board_state[1][0][1] + " /|" + self.board_state[1][0][2] + " / " +
-            self.board_state[1][0][3] + " /|")
+        print("|       / {} / {} /|{} / {} /|".format(self.board_state[1][0][0], self.board_state[1][0][1],
+                                                      self.board_state[1][0][2], self.board_state[1][0][3]))
         print("|      /___/___/_|_/___/ |")
-        print("|     / " + self.board_state[1][1][0] + " / " + self.board_state[1][1][1] + " / " + self.board_state[1][1][2] + "|/ " +
-              self.board_state[1][1][3] + " /  |")
+        print("|     / {} / {} / {}|/ {} /  |".format(self.board_state[1][1][0], self.board_state[1][1][1],
+                                                      self.board_state[1][1][2], self.board_state[1][1][3]))
         print("|    /___/___/___|___/   |")
         print("|   / " + self.board_state[1][2][0] + " / " + self.board_state[1][2][1] + " / " + self.board_state[1][2][2] + " /|" +
               self.board_state[1][2][3] + " /    |")
@@ -340,6 +341,7 @@ while not board.is_win():
             layer, row, column = make_minimax_move(copy.deepcopy(board), player)
             print(layer, row, column)
         else:
+            # print("Calculating move...")
             # layer, row, column = make_minimax_move(copy.deepcopy(board), player)
             # print(layer, row, column)
             (layer, row, column) = [x - 1 for x in map(int, input().split(' '))]
@@ -359,7 +361,6 @@ while not board.is_win():
         continue
 
     redraw(board)
-    board.draw_heuristics()
     player = change_player(player)
 
 print("PLAYER " + board.is_win() + " WON")
