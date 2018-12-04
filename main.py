@@ -84,7 +84,6 @@ class Board:
         row, column = field[1], field[2]
         fields = []
         for z in range(4):
-            # print([z, row, column])
             fields.append([z, row, column])
         return fields
 
@@ -92,7 +91,6 @@ class Board:
         layer, column = field[0], field[2]
         fields = []
         for y in range(4):
-            # print([layer, y, column])
             fields.append([layer, y, column])
         return fields
 
@@ -100,12 +98,43 @@ class Board:
         layer, row = field[0], field[1]
         fields = []
         for x in range(4):
-            # print([layer, row, x])
             fields.append([layer, row, x])
         return fields
 
-    # def get_diagonal_fields(self, field):
-        
+    def get_diagonal_fields(self, field):
+        layer, row, column = field[0], field[1], field[2]
+        fields = []
+        if row == column:
+            for x in range(4):
+                fields.append([layer, x, x])
+        if (row + column) == 3:
+            for x in range(4):
+                fields.append([layer, x, 3-x])
+        if layer == column:
+            for x in range(4):
+                fields.append([x, row, x])
+        if (layer + column) == 3:
+            for x in range(4):
+                fields.append([x, row, 3-x])
+        if layer == row:
+            for x in range(4):
+                fields.append([x, x, column])
+        if (layer + row) == 3:
+            for x in range(4):
+                fields.append([x, 3-x, column])
+        if layer == row == column:
+            for x in range(4):
+                fields.append([x, x, x])
+        if layer == row and row + column == 3:
+            for x in range(4):
+                fields.append([x, x, 3-x])
+        if row == column and layer + row == 3:
+            for x in range(4):
+                fields.append([x, 3-x, 3-x])
+        if layer == column and layer + row == 3:
+            for x in range(4):
+                fields.append([x, 3-x, x])
+        return fields
 
     def make_move(self, player, layer, row, column):
         if self.board_state[layer][row][column] is not ' ':
@@ -121,7 +150,8 @@ class Board:
             self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
         for field in self.get_column_fields([layer, row, column]):
             self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
-        return
+        for field in self.get_diagonal_fields([layer, row, column]):
+            self.field_heuristics[field[0]][field[1]][field[2]] = self.field_heuristics[field[0]][field[1]][field[2]] + {'x': -1, 'o': 1}[player]
 
     def _update_wins(self, player, layer, row, column):
         self.wins[4 * row + column] = self.wins[4 * row + column] + {'x': -1, 'o': 1}[player]
@@ -279,7 +309,6 @@ def minimax(board, player, depth):
 
 def make_minimax_move(board, player):
     score, move = minimax(board, player, 2)
-    print(score, move)
     return move
 
 
@@ -330,7 +359,7 @@ while not board.is_win():
         continue
 
     redraw(board)
-    # board.draw_heuristics()
+    board.draw_heuristics()
     player = change_player(player)
 
 print("PLAYER " + board.is_win() + " WON")
