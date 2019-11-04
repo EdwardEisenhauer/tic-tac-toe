@@ -52,9 +52,6 @@ https://towardsdatascience.com/how-to-teach-an-ai-to-play-games-deep-reinforceme
 
 "A Q-table is a matrix, which correlates the state of the agent with the possible actions that the system can adopt."
 
-
-
-
 ### Project: Train a AI how to play Snake - maurock
 
 https://github.com/maurock/snake-ga
@@ -68,6 +65,10 @@ gorithms only a reward function, which indicates to the learning agent when it i
 
 "Thus, to make this expectation large, we would like to accrue positive rewards as soon as possible (and postpone negative rewards as long as possible)."
 
+### Reinforcement Learning - A Tic Tac Toe Example - George Swan
 
+https://www.codeproject.com/Articles/1400011/Reinforcement-Learning-A-Tic-Tac-Toe-Example
 
+### Reinforcement Learning and Deep Reinforcement Learning with Tic Tac Toe - Gilad Wisney
 
+https://towardsdatascience.com/reinforcement-learning-and-deep-reinforcement-learning-with-tic-tac-toe-588d09c41dda
