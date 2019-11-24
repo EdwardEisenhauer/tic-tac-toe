@@ -19,20 +19,21 @@ class Field(Enum):
 
 
 class Game:
-    def __init__(self, player1, player2):
+    def __init__(self, player1, player2, draw=False):
         self.turn = Field.X
         self.board = Board()
         self.winner = None
         self.playerX = player1
         self.playerO = player2
         self.current_player = self.playerX
+        self.draw = draw
         self.stats = {'X': 0, 'O': 0, 'Tie': 0}
 
     def play(self):
         while not self.winner:
-            self.board.draw_heuristics()
-            # print(self.turn.name + "'s turn")
-            # time.sleep(1)
+            if self.draw == True:
+                self.board.draw_heuristics()
+                print(self.turn.name + "'s turn")
             try:
                 self.board.move(self.turn, self.current_player.make_move(self.board))
             except ValueError:
@@ -42,7 +43,8 @@ class Game:
                 print("The size of the board is 3x3!")
                 continue
             self._end_turn()
-        self.board.draw_heuristics()
+        if self.draw == True:
+            self.board.draw_heuristics()
         self._update_stats()
         return self.winner
 
@@ -148,13 +150,14 @@ class Mode(Enum):
 
 
 class Player:
-    def __init__(self, field, mode, epsilon=0, learning_rate=0):
+    def __init__(self, field, mode, epsilon=None, learning_rate=None, gamma=None):
         self.token = field
         self.mode = mode
         if mode == Mode.Q:
             self.q_table = {}
             self.epsilon = epsilon
             self.learning_rate = learning_rate
+            self.gamma = gamma
 
     def make_move(self, board):
         if self.mode == Mode.HUMAN:
@@ -194,20 +197,51 @@ class Player:
                 random_move = random.choice(board.get_possible_moves())
                 new_board = Board(current_state.copy())
                 new_board.move(self.token, random_move)
-                self.q_table[current_state_str][random_move] = self.q_table[current_state_str][random_move] + self.learning_rate*self._reward(new_board)
-                # print(self.q_table)
-                return random.choice(board.get_possible_moves())
+                self.q_table[current_state_str][random_move] = self.q_table[current_state_str][random_move] + self.learning_rate*(self._reward(new_board) + self.gamma*self._get_max_q_table_value(new_board.get_state_in_str()))
+                print("RANDOM MOVE")
+                print(self._print_q_table(current_state_str))
+                return random_move
             else:
-                return self._get_max_q_table(current_state_str)
+                print("MAX_Q")
+                print(self._print_q_table(current_state_str))
+                max_q_move = self._get_max_q_table_move(current_state_str)
+                new_board = Board(current_state.copy())
+                new_board.move(self.token, max_q_move)
+                self.q_table[current_state_str][max_q_move] = self.q_table[current_state_str][max_q_move] + self.learning_rate*(self._reward(new_board) + self.gamma*self._get_max_q_table_value(new_board.get_state_in_str()))
+                return max_q_move
 
-    def _get_max_q_table(self, state):
+    def _get_max_q_table_move(self, state):
         return max(self.q_table[state], key=lambda k: self.q_table[state][k])
+
+    def _get_max_q_table_value(self, state):
+        try:
+            max_q = max(self.q_table[state])
+        except KeyError:
+            return 0
+        return max_q
+
+    def _print_q_table(self, state):
+        fields = self.q_table[state].copy()
+        for field in range(9):
+            if field not in fields:
+                fields[field] = state[field]
+        print("|{} {} {}|".format(fields[0], fields[1], fields[2]))
+        print("|{} {} {}|".format(fields[3], fields[4], fields[5]))
+        print("|{} {} {}|".format(fields[6], fields[7], fields[8]))
 
     def _reward(self, board):
         heuristics = board.get_heuristics()
-        if 3 in heuristics: return 10*self.token.value
-        elif -3 in heuristics: return -10*self.token.value
+        if 3 in heuristics: return 100*self.token.value
+        elif -3 in heuristics: return -100*self.token.value
         else: return sum(heuristics)
+
+    def get_mode(self):
+        return self.mode
+
+    # def update_q_table(self,state,action):
+    #     self.q_table[current_state_str][max_q_move] = self.q_table[current_state_str][max_q_move] + self.learning_rate*(self._reward(new_board) + self.gamma*self._get_max_q_table_value(new_board.get_state_in_str()))
+
+
 
 # class MDPAgent:
 #     def __init__(self):
@@ -218,7 +252,7 @@ class Player:
 
 games_to_play = int(sys.argv[1])
 
-game = Game(Player(Field.X, Mode.Q, epsilon=0.5, learning_rate=0.5), Player(Field.O, Mode.RANDOM))
+game = Game(Player(Field.X, Mode.Q, epsilon=0.1, learning_rate=0.1, gamma=0), Player(Field.O, Mode.RANDOM), draw=True)
 # result = game.play()
 # if result == Field.EMPTY:
 #     print("It is a tie!")
@@ -227,7 +261,6 @@ game = Game(Player(Field.X, Mode.Q, epsilon=0.5, learning_rate=0.5), Player(Fiel
 
 x = []
 y = []
-pyplot.ylim(top=len(x))
 pyplot.plot(x, y, '-')
 pyplot.draw()
 pyplot.pause(1)
@@ -237,11 +270,11 @@ for i in range(games_to_play):
     game.play()
     game.reset()
     x.append(len(x)+1)
-    y.append(game.get_stats()['X'])
-    pyplot.ylim(top=len(x))
+    y.append(game.get_stats()['X']/len(x))
+    pyplot.ylim(bottom=0,top=1)
     pyplot.plot(x, y, '-')
     pyplot.draw()
-    pyplot.pause(0.1)
+    pyplot.pause(0.0001)
 
 stats = game.get_stats()
 print(stats)
