@@ -1,7 +1,7 @@
 from enum import Enum, auto
-from math import pow
+from math import pow, sqrt
 from matplotlib import pyplot
-import copy
+# import copy
 import random
 
 
@@ -46,6 +46,7 @@ class Game:
                 self.board.draw(heuristics=True)
             self.winner = self.board.get_winner()
             self._switch_players()
+            print("------------")
         self._update_stats()
 
     def reset(self):
@@ -63,6 +64,7 @@ class Game:
         pyplot.subplot(111)
         pyplot.bar(range(len(self.stats)), self.stats.values())
         pyplot.xticks(range(len(self.stats)), self.stats.keys())
+        print(self.stats)
         pyplot.show()
 
 
@@ -118,23 +120,22 @@ class Board:
             line = "{:2} {} " + "{:2}" * self.size + "|"
             for i in range(self.size):
                 print(line.format(self.heuristics[self.size+i], '|', *to_draw[self.size * i:(i + 1) * self.size]))
-            footer = "{:4}{:8}"
+            footer = "{:4}{:" + str(2 * self.size + 2) + "}"
             print(footer.format(self.heuristics[2 * self.size + 1], self.heuristics[2 * self.size]))
         else:
             line = "| " + "{:2}" * self.size + "|"
             for i in range(self.size):
                 print(line.format(*to_draw[self.size * i:(i + 1) * self.size]))
-        print()
 
     def reset(self):
         self.state = [Field.EMPTY] * int(pow(self.size, 2))
         self.actions = list(range(int(pow(self.size, 2))))
-        self.heuristics = [] * (2 * self.size + 2)
+        self.heuristics = [0] * (2 * self.size + 2)
 
     def get_heuristics(self):
         return self.heuristics
 
-    def get_possible_actions(self):
+    def get_actions(self):
         return self.actions
 
     def get_size(self):
@@ -142,6 +143,9 @@ class Board:
 
     def get_state(self):
         return self.state
+
+    def get_state_in_str(self):
+        return ''.join(list(map(lambda x: x.to_char(), self.state)))
 
     def get_winner(self):
         if self.size in self.heuristics:
@@ -169,7 +173,8 @@ class Player:
         elif self.mode == Mode.HEURISTIC:
             return self.make_heuristic_move(board)
         elif self.mode == Mode.Q:
-            pass
+            self.make_q_move(board)
+            return self.make_random_move(board)
 
     @staticmethod
     def make_human_move(board):
@@ -185,32 +190,36 @@ class Player:
 
     @staticmethod
     def make_random_move(board):
-        return random.choice(board.get_possible_actions())
+        return random.choice(board.get_actions())
 
     def make_heuristic_move(self, board):
         current_heuristic_sum = sum(board.get_heuristics())
         optimal_field = None
         current_state = board.get_state()
-        for index, field in enumerate(board.get_possible_actions()):
+        for index, field in enumerate(board.get_actions()):
             new_board = Board(state=current_state.copy())
             new_board.move(self.token, field)
-            predicted_heuristic = self._reward(new_board)
+            predicted_heuristic = self._calculate_heuristic(new_board)
             if self.token.value*(predicted_heuristic - current_heuristic_sum) > 0:
                 current_heuristic_sum = predicted_heuristic
                 optimal_field = field
         if optimal_field is None:
-            optimal_field = random.choice(board.get_possible_actions())
+            optimal_field = random.choice(board.get_actions())
         return optimal_field
 
     def make_q_move(self, board):
+        current_state = board.get_state()
+        current_state_str = board.get_state_in_str()
+        self.q_agent.make_q_move(board)
+        self.q_agent.draw_q_table(current_state_str)
         pass
 
-    def _reward(self, board):
+    def _calculate_heuristic(self, board):
         heuristic = board.get_heuristics()
         if board.get_size() in heuristic:
-            return 100*self.token.value
+            return 10*self.token.value
         elif -board.get_size() in heuristic:
-            return -100*self.token.value
+            return -10*self.token.value
         else:
             return sum(heuristic)
 
@@ -223,8 +232,39 @@ class QAgent:
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
+        self.q_table = {}
+
+    def make_q_move(self, board):
+        current_state = board.get_state()
+        current_state_str = board.get_state_in_str()
+        if current_state_str not in self.q_table:
+            self.q_table[current_state_str] = {action: 0 for action in board.get_actions()}
+        pass
+
+    def draw_q_table(self, state):
+        size = int(sqrt(len(state)))
+        to_draw = self.q_table[state].copy()
+        for i in range(len(state)):
+            if i not in to_draw:
+                to_draw[i] = state[i]
+        line = "   | " + "{:2}" * size + "|"
+        list_to_draw = [''] * len(state)
+        for key in to_draw:
+            list_to_draw[int(key)] = str(to_draw[key])
+        for i in range(size):
+            print(line.format(*list_to_draw[size * i:(i + 1) * size]))
+        print()
+
+    def _update_q_table(self):
+        pass
+
+    def _reward(self):
+        pass
 
 
-tic_tac_toe = Game((Player(Field.X), Player(Field.O, Mode.HEURISTIC)), board_size=3, draw=True)
-tic_tac_toe.play()
+games_to_play = 1
+tic_tac_toe = Game((Player(Field.X), Player(Field.O, Mode.Q)), board_size=3, draw=True)
+for episode in range(games_to_play):
+    tic_tac_toe.play()
+    tic_tac_toe.reset()
 # tic_tac_toe.visualize_stats()
