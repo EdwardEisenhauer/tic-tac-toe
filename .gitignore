@@ -1,0 +1,5 @@
+# output files
+*.html
+
+# PyCharm
+.idea/

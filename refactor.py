@@ -39,9 +39,6 @@ class Game:
             except ValueError:
                 print("This field is already taken!")
                 continue
-            except IndexError:
-                print("The size of the board is 3x3!")
-                continue
             if self.draw:
                 self.board.draw(heuristics=True)
             self.winner = self.board.get_winner()
@@ -104,9 +101,12 @@ class Board:
             self.heuristics[2 * self.size + 1] += token.value
 
     def move(self, token, index):
+        row = int(index / self.size)
+        column = index % self.size
+        print(row, column)
         if self.state[index] is not Field.EMPTY:
             raise ValueError
-        if index > int(pow(self.size, 2)):
+        if row not in range(self.size) or column not in range(self.size):
             raise IndexError
         self.state[index] = token
         self._update_actions()
@@ -173,8 +173,7 @@ class Player:
         elif self.mode == Mode.HEURISTIC:
             return self.make_heuristic_move(board)
         elif self.mode == Mode.Q:
-            self.make_q_move(board)
-            return self.make_random_move(board)
+            return self.make_q_move(board)
 
     @staticmethod
     def make_human_move(board):
@@ -182,6 +181,12 @@ class Player:
         while row is None and column is None:
             try:
                 row, column = map(int, input().split(' '))
+                if row - 1 not in range(board.get_size()) or column - 1 not in range(board.get_size()):
+                    raise IndexError
+            except IndexError:
+                print("The size of the board is " + str(board.get_size()) + "x" + str(board.get_size()) + "!")
+                row, column = None, None
+                continue
             except ValueError:
                 print("Provide two integers (row and column)")
             except KeyboardInterrupt:
@@ -228,7 +233,7 @@ class Player:
 
 
 class QAgent:
-    def __init__(self, alpha=1, gamma=0, epsilon=0):
+    def __init__(self, alpha=1, gamma=0, epsilon=1):
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
@@ -239,9 +244,11 @@ class QAgent:
         current_state_str = board.get_state_in_str()
         if current_state_str not in self.q_table:
             self.q_table[current_state_str] = {action: 0 for action in board.get_actions()}
-        pass
+        if random.uniform(0, 1) < self.epsilon:
+            random_move = random.choice(board.get_actions())
 
     def draw_q_table(self, state):
+        """This function need rewriting - gonna do this later tho"""
         size = int(sqrt(len(state)))
         to_draw = self.q_table[state].copy()
         for i in range(len(state)):
@@ -263,7 +270,7 @@ class QAgent:
 
 
 games_to_play = 1
-tic_tac_toe = Game((Player(Field.X), Player(Field.O, Mode.Q)), board_size=3, draw=True)
+tic_tac_toe = Game((Player(Field.X), Player(Field.O, mode=Mode.HUMAN)), board_size=3, draw=True)
 for episode in range(games_to_play):
     tic_tac_toe.play()
     tic_tac_toe.reset()
