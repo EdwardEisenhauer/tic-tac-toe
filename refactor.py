@@ -70,35 +70,35 @@ class Board:
         self.size = size
         self.state = [Field.EMPTY] * int(pow(self.size, 2))
         self.actions = list(range(int(pow(self.size, 2))))
-        self.heuristics = [0] * (2 * self.size + 2)
+        self.winning_conditions = [0] * (2 * self.size + 2)
         if state is not None:
             self.state = state
             self._update_actions()
-            self._calculate_heuristics()
+            self._calculate_winning_conditions()
 
     def _update_actions(self):
         self.actions = [i for i, x in enumerate(self.state) if x == Field.EMPTY]
 
-    def _calculate_heuristics(self):
+    def _calculate_winning_conditions(self):
         for index, field in enumerate(self.state):
             row = int(index / self.size)
             column = index % self.size
-            self.heuristics[row] += field.value
-            self.heuristics[self.size + column] += field.value
+            self.winning_conditions[row] += field.value
+            self.winning_conditions[self.size + column] += field.value
             if row == column:
-                self.heuristics[2 * self.size] += field.value
+                self.winning_conditions[2 * self.size] += field.value
             if row + column == self.size - 1:
-                self.heuristics[2 * self.size + 1] += field.value
+                self.winning_conditions[2 * self.size + 1] += field.value
 
-    def _update_heuristics(self, token, index):
+    def _update_winning_conditions(self, token, index):
         row = int(index / self.size)
         column = index % self.size
-        self.heuristics[column] += token.value
-        self.heuristics[self.size + row] += token.value
+        self.winning_conditions[column] += token.value
+        self.winning_conditions[self.size + row] += token.value
         if row == column:
-            self.heuristics[2 * self.size] += token.value
+            self.winning_conditions[2 * self.size] += token.value
         if row + column == self.size - 1:
-            self.heuristics[2 * self.size + 1] += token.value
+            self.winning_conditions[2 * self.size + 1] += token.value
 
     def move(self, token, index):
         row = int(index / self.size)
@@ -110,18 +110,18 @@ class Board:
             raise IndexError
         self.state[index] = token
         self._update_actions()
-        self._update_heuristics(token, index)
+        self._update_winning_conditions(token, index)
 
     def draw(self, heuristics=False):
         to_draw = list(map(lambda x: x.to_char(), self.state))
         if heuristics:
             header = "    " + "{:2}" * self.size
-            print(header.format(*self.heuristics[0:self.size]))
+            print(header.format(*self.winning_conditions[0:self.size]))
             line = "{:2} {} " + "{:2}" * self.size + "|"
             for i in range(self.size):
-                print(line.format(self.heuristics[self.size+i], '|', *to_draw[self.size * i:(i + 1) * self.size]))
+                print(line.format(self.winning_conditions[self.size + i], '|', *to_draw[self.size * i:(i + 1) * self.size]))
             footer = "{:4}{:" + str(2 * self.size + 2) + "}"
-            print(footer.format(self.heuristics[2 * self.size + 1], self.heuristics[2 * self.size]))
+            print(footer.format(self.winning_conditions[2 * self.size + 1], self.winning_conditions[2 * self.size]))
         else:
             line = "| " + "{:2}" * self.size + "|"
             for i in range(self.size):
@@ -130,10 +130,10 @@ class Board:
     def reset(self):
         self.state = [Field.EMPTY] * int(pow(self.size, 2))
         self.actions = list(range(int(pow(self.size, 2))))
-        self.heuristics = [0] * (2 * self.size + 2)
+        self.winning_conditions = [0] * (2 * self.size + 2)
 
-    def get_heuristics(self):
-        return self.heuristics
+    def get_winning_conditions(self):
+        return self.winning_conditions
 
     def get_actions(self):
         return self.actions
@@ -148,9 +148,9 @@ class Board:
         return ''.join(list(map(lambda x: x.to_char(), self.state)))
 
     def get_winner(self):
-        if self.size in self.heuristics:
+        if self.size in self.winning_conditions:
             return 'X'
-        elif -self.size in self.heuristics:
+        elif -self.size in self.winning_conditions:
             return 'O'
         elif not self.actions:
             return 'Tie'
@@ -159,11 +159,11 @@ class Board:
 
 
 class Player:
-    def __init__(self, token, mode=Mode.RANDOM):
+    def __init__(self, token, mode=Mode.RANDOM, alpha=1, gamma=0, epsilon=1):
         self.token = token
         self.mode = mode
         if mode is Mode.Q:
-            self.q_agent = QAgent()
+            self.q_agent = QAgent(alpha, gamma, epsilon)
 
     def make_move(self, board):
         if self.mode == Mode.HUMAN:
@@ -198,7 +198,7 @@ class Player:
         return random.choice(board.get_actions())
 
     def make_heuristic_move(self, board):
-        current_heuristic_sum = sum(board.get_heuristics())
+        current_heuristic_sum = sum(board.get_winning_conditions())
         optimal_field = None
         current_state = board.get_state()
         for index, field in enumerate(board.get_actions()):
@@ -215,12 +215,14 @@ class Player:
     def make_q_move(self, board):
         current_state = board.get_state()
         current_state_str = board.get_state_in_str()
-        self.q_agent.make_q_move(board)
+        q_move = self.q_agent.make_q_move(board)
         self.q_agent.draw_q_table(current_state_str)
-        pass
+
+        self.q_agent.update_q_table()
+        return q_move
 
     def _calculate_heuristic(self, board):
-        heuristic = board.get_heuristics()
+        heuristic = board.get_winning_conditions()
         if board.get_size() in heuristic:
             return 10*self.token.value
         elif -board.get_size() in heuristic:
@@ -232,10 +234,10 @@ class Player:
         return self.token
 
 
-class QAgent:
+class QAgent():
     def __init__(self, alpha=1, gamma=0, epsilon=1):
-        self.alpha = alpha
-        self.gamma = gamma
+        self.alpha = alpha      # learning rate
+        self.gamma = gamma      #
         self.epsilon = epsilon
         self.q_table = {}
 
@@ -245,7 +247,10 @@ class QAgent:
         if current_state_str not in self.q_table:
             self.q_table[current_state_str] = {action: 0 for action in board.get_actions()}
         if random.uniform(0, 1) < self.epsilon:
-            random_move = random.choice(board.get_actions())
+            q_move = random.choice(board.get_actions())
+        else:
+            q_move = random.choice(board.get_actions())
+        return q_move
 
     def draw_q_table(self, state):
         """This function need rewriting - gonna do this later tho"""
@@ -262,15 +267,16 @@ class QAgent:
             print(line.format(*list_to_draw[size * i:(i + 1) * size]))
         print()
 
-    def _update_q_table(self):
+    def update_q_table(self, state, reward):
         pass
 
     def _reward(self):
-        pass
+
+        return 0
 
 
 games_to_play = 1
-tic_tac_toe = Game((Player(Field.X), Player(Field.O, mode=Mode.HUMAN)), board_size=3, draw=True)
+tic_tac_toe = Game((Player(Field.X), Player(Field.O)), board_size=3, draw=True)
 for episode in range(games_to_play):
     tic_tac_toe.play()
     tic_tac_toe.reset()
