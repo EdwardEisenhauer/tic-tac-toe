@@ -21,6 +21,10 @@ class Mode(Enum):
     Q = auto()
 
 
+def state_to_str(state):
+    return ''.join(list(map(lambda x: x.to_char(), state)))
+
+
 class Game:
     def __init__(self, players, board_size=3, draw=False):
         self.draw = draw
@@ -159,7 +163,7 @@ class Board:
 
 
 class Player:
-    def __init__(self, token, mode=Mode.RANDOM, alpha=1, gamma=0, epsilon=1):
+    def __init__(self, token, mode=Mode.RANDOM, alpha=1.0, gamma=0.0, epsilon=1.0):
         self.token = token
         self.mode = mode
         if mode is Mode.Q:
@@ -218,7 +222,7 @@ class Player:
         q_move = self.q_agent.make_q_move(board)
         self.q_agent.draw_q_table(current_state_str)
 
-        self.q_agent.update_q_table()
+        # self.q_agent.update_q_table()
         return q_move
 
     def _calculate_heuristic(self, board):
@@ -234,11 +238,11 @@ class Player:
         return self.token
 
 
-class QAgent():
-    def __init__(self, alpha=1, gamma=0, epsilon=1):
+class QAgent:
+    def __init__(self, alpha=1.0, gamma=0.0, epsilon=1.0):
         self.alpha = alpha      # learning rate
         self.gamma = gamma      #
-        self.epsilon = epsilon
+        self.epsilon = epsilon  # exploration rate
         self.q_table = {}
 
     def make_q_move(self, board):
@@ -249,11 +253,11 @@ class QAgent():
         if random.uniform(0, 1) < self.epsilon:
             q_move = random.choice(board.get_actions())
         else:
-            q_move = random.choice(board.get_actions())
+            q_move = self._get_max_q_move(state_to_str(current_state))
         return q_move
 
     def draw_q_table(self, state):
-        """This function need rewriting - gonna do this later tho"""
+        """This function needs rewriting - gonna do this later tho"""
         size = int(sqrt(len(state)))
         to_draw = self.q_table[state].copy()
         for i in range(len(state)):
@@ -267,8 +271,12 @@ class QAgent():
             print(line.format(*list_to_draw[size * i:(i + 1) * size]))
         print()
 
-    def update_q_table(self, state, reward):
+    def update_q_table(self, state, action, reward):
+        self.q_table[state][action] = reward
         pass
+
+    def _get_max_q_move(self, state):
+        return max(self.q_table[state], key=lambda key: self.q_table[state][key])
 
     def _reward(self):
 
@@ -276,7 +284,7 @@ class QAgent():
 
 
 games_to_play = 1
-tic_tac_toe = Game((Player(Field.X), Player(Field.O)), board_size=3, draw=True)
+tic_tac_toe = Game((Player(Field.X), Player(Field.O, mode=Mode.Q, epsilon=0.5)), board_size=3, draw=True)
 for episode in range(games_to_play):
     tic_tac_toe.play()
     tic_tac_toe.reset()
