@@ -39,7 +39,7 @@ class Game:
             self.board.draw(heuristics=True)
         while self.winner is None:
             try:
-                self.board.move(self.current_player.get_token(), self.current_player.make_move(self.board))
+                self.current_player.make_move(self.board)
             except ValueError:
                 print("This field is already taken!")
                 continue
@@ -56,7 +56,8 @@ class Game:
         self.winner = None
 
     def _update_stats(self):
-        self.stats[self.winner] = self.stats[self.winner] + 1
+        winner_in_str = {Field.X: 'X', Field.O: 'O', Field.EMPTY: 'Tie'}[self.winner]
+        self.stats[winner_in_str] = self.stats[winner_in_str] + 1
 
     def _switch_players(self):
         self.current_player = {self.players[0]: self.players[1], self.players[1]: self.players[0]}[self.current_player]
@@ -153,11 +154,11 @@ class Board:
 
     def get_winner(self):
         if self.size in self.winning_conditions:
-            return 'X'
+            return Field.X
         elif -self.size in self.winning_conditions:
-            return 'O'
+            return Field.O
         elif not self.actions:
-            return 'Tie'
+            return Field.EMPTY
         else:
             return None
 
@@ -171,13 +172,13 @@ class Player:
 
     def make_move(self, board):
         if self.mode == Mode.HUMAN:
-            return self.make_human_move(board)
+            board.move(self.token, self.make_human_move(board))
         elif self.mode == Mode.RANDOM:
-            return self.make_random_move(board)
+            board.move(self.token, self.make_random_move(board))
         elif self.mode == Mode.HEURISTIC:
-            return self.make_heuristic_move(board)
+            board.move(self.token, self.make_heuristic_move(board))
         elif self.mode == Mode.Q:
-            return self.make_q_move(board)
+            board.move(self.token, self.make_q_move(board))
 
     @staticmethod
     def make_human_move(board):
@@ -221,8 +222,7 @@ class Player:
         current_state_str = board.get_state_in_str()
         q_move = self.q_agent.make_q_move(board)
         self.q_agent.draw_q_table(current_state_str)
-
-        # self.q_agent.update_q_table()
+        self.q_agent.update_q_table(current_state, q_move, self._reward(board))
         return q_move
 
     def _calculate_heuristic(self, board):
@@ -236,6 +236,12 @@ class Player:
 
     def get_token(self):
         return self.token
+
+    def _reward(self, board):
+        if board.get_winner is self.token:
+            return 1
+        else:
+            return -1
 
 
 class QAgent:
@@ -272,6 +278,7 @@ class QAgent:
         print()
 
     def update_q_table(self, state, action, reward):
+        state = state_to_str(state)
         self.q_table[state][action] = reward
         pass
 
