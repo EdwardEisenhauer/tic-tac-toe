@@ -11,7 +11,7 @@ class Board:
         :param size: Board size. Eg. 5 for 5x5 board.
         """
         self.size = size
-        self.state = list(Field.EMPTY for _ in range(self.size**2))
+        self.state = [Field.EMPTY] * size**2
 
     def __setitem__(self, index, marker):
         """
@@ -49,7 +49,7 @@ class Board:
 
     def get_actions(self):
         """ Returns list of indices where a move is possible """
-        return list(k for k, v in enumerate(self.state) if v == Field.EMPTY)
+        return list(index for index, value in enumerate(self.state) if value == Field.EMPTY)
 
     def copy(self):
         """ Returns copy of board. """
