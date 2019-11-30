@@ -11,7 +11,7 @@ class Board:
         :param size: Board size. Eg. 5 for 5x5 board.
         """
         self.size = size
-        self.state = list(Field.EMPTY for _ in range(self.size**2))
+        self.state = [Field.EMPTY] * size**2
 
     def __setitem__(self, index, marker):
         """
