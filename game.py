@@ -6,6 +6,7 @@ from matplotlib import pyplot
 
 class Game:
     def __init__(self, players, board_size=3, draw=False):
+        self.board_size = board_size
         self.draw: bool = draw
         self.board = Board(board_size)
         self.players = players
@@ -30,7 +31,7 @@ class Game:
         self._update_stats()
 
     def reset(self):
-        self.board.reset()
+        self.board = Board(self.board_size)
         self.current_player = self.players[0]
         self.winner = None
 

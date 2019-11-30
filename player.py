@@ -33,13 +33,14 @@ class Player:
         :return:
         """
         if self.mode == Mode.HUMAN:
-            board.move(self.token, self.make_human_move(board))
+            move = self.make_human_move(board)
         elif self.mode == Mode.RANDOM:
-            board.move(self.token, self.make_random_move(board))
+            move = self.make_random_move(board)
         elif self.mode == Mode.HEURISTIC:
-            board.move(self.token, self.make_heuristic_move(board))
+            move = self.make_heuristic_move(board)
         elif self.mode == Mode.Q:
-            board.move(self.token, self.make_q_move(board))
+            move = self.make_q_move(board)
+        board[move] = self.token
 
     @staticmethod
     def make_human_move(board):
@@ -52,17 +53,17 @@ class Player:
         while row is None and column is None:
             try:
                 row, column = map(int, input().split(' '))
-                if row - 1 not in range(board.get_size()) or column - 1 not in range(board.get_size()):
+                if row - 1 not in range(board.size) or column - 1 not in range(board.size):
                     raise IndexError
             except IndexError:
-                print("The size of the board is " + str(board.get_size()) + "x" + str(board.get_size()) + "!")
+                print("The size of the board is " + str(board.size) + "x" + str(board.size) + "!")
                 row, column = None, None
                 continue
             except ValueError:
                 print("Provide two integers (row and column)")
             except KeyboardInterrupt:
                 exit(0)
-        return (row - 1) * board.get_size() + column - 1
+        return (row - 1) * board.size + column - 1
 
     @staticmethod
     def make_random_move(board):
@@ -84,7 +85,7 @@ class Player:
         current_state = board.get_state()
         for index, field in enumerate(board.get_actions()):
             new_board = Board(state=current_state.copy())
-            new_board.move(self.token, field)
+            new_board[field] = self.token
             predicted_heuristic = self._calculate_heuristic(new_board)
             if self.token.value*(predicted_heuristic - current_heuristic_sum) > 0:
                 current_heuristic_sum = predicted_heuristic
@@ -115,9 +116,9 @@ class Player:
 
     def _calculate_heuristic(self, board):
         heuristic = board.get_winning_conditions()
-        if board.get_size() in heuristic:
+        if board.size in heuristic:
             return 10*self.token.value
-        elif -board.get_size() in heuristic:
+        elif -board.size in heuristic:
             return -10*self.token.value
         else:
             return sum(heuristic)
