@@ -4,7 +4,7 @@ import copy
 
 class Board:
     """
-    TocTacToe game board representation.
+    TicTacToe game board representation.
     """
     def __init__(self, size):
         """
