@@ -7,7 +7,17 @@ import random
 
 
 class Player:
+    """
+    Represents agents and perform actions on the game board
+    """
     def __init__(self, token, mode=Mode.RANDOM, alpha=1.0, gamma=1.0, epsilon=1.0):
+        """""
+        :param token: Player's representation on the game board (X or O)
+        :param mode: Human/Random/Simple Heuristics/Q-Learning
+        :param alpha: Learning rate [0,1]
+        :param gamma: Discount factor [0,1]
+        :param epsilon: Exploration factor [0,1]
+        """
         self.token = token
         self.mode = mode
         if self.mode is Mode.Q:
@@ -17,6 +27,11 @@ class Player:
             self.q_table = QTable()
 
     def make_move(self, board):
+        """
+        Performs a move on the board
+        :param board: game board to modify
+        :return:
+        """
         if self.mode == Mode.HUMAN:
             board.move(self.token, self.make_human_move(board))
         elif self.mode == Mode.RANDOM:
@@ -28,6 +43,11 @@ class Player:
 
     @staticmethod
     def make_human_move(board):
+        """
+        Ask the human player to indicate next move's coordinates
+        :param board: game board to modify
+        :return:
+        """
         row, column = None, None
         while row is None and column is None:
             try:
@@ -46,9 +66,19 @@ class Player:
 
     @staticmethod
     def make_random_move(board):
+        """
+        Chooses a random possible move
+        :param board:
+        :return:
+        """
         return random.choice(board.get_actions())
 
     def make_heuristic_move(self, board):
+        """
+        Chooses a move based on a simple heuristics
+        :param board:
+        :return:
+        """
         current_heuristic_sum = sum(board.get_winning_conditions())
         optimal_field = None
         current_state = board.get_state()
@@ -64,6 +94,11 @@ class Player:
         return optimal_field
 
     def make_q_move(self, board):
+        """
+        Chooses a move based on a Q-Learning agent
+        :param board:
+        :return:
+        """
         current_state = board.get_state()
         current_state_str = state_to_str(current_state)
         self.q_table.draw(current_state_str)
@@ -96,7 +131,14 @@ class Player:
             return 0
 
     def update_q_table(self, state, action, reward):
-        """Q(s,a) = R(s,a) + maxQ'(s',a')"""
+        """
+        Updated Q-Table based on the equation:
+        Q(s,a) = R(s,a) + maxQ'(s',a')
+        :param state:
+        :param action:
+        :param reward:
+        :return:
+        """
         state = state_to_str(state)                                 # s
         new_state = self._new_state(state, action)                  # s'
         max_q_value = self.q_table.get_max_q_move_value(new_state)  # maxQ'(s',a')
@@ -104,6 +146,12 @@ class Player:
         print(str(state) + ":" + str(action) + " = " + str(reward) + " + " + str(self.gamma * max_q_value))
 
     def _new_state(self, state, action) -> str:
+        """
+        Adds a new previously non-existing state to the Q-Table
+        :param state:
+        :param action:
+        :return:
+        """
         new_state = state[:action] + self.token.to_char() + state[action + 1:]
         if new_state not in self.q_table.get_q_table():
             actions = self._from_state_str_to_actions(new_state)
@@ -126,6 +174,7 @@ class QTable:
         self.q_table[state] = {action: 0 for action in actions}
 
     def get_max_q_move(self, state: list):
+        print(max(self.q_table[state], key=lambda key: self.q_table[state][key]))
         return max(self.q_table[state], key=lambda key: self.q_table[state][key])
 
     def get_max_q_move_value(self, state: list):
