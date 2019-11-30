@@ -28,6 +28,7 @@ class Game:
             self.winner = self.board.get_winner()
             self._switch_players()
             print("------------")
+        self.players[1].q_table.draw(self.board.state)
         self._update_stats()
 
     def reset(self):

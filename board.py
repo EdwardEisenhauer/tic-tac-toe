@@ -109,8 +109,7 @@ class Board:
 
     def copy(self):
         """ Returns copy of board. """
-        result = Board(self.size)
-        result.state = copy.copy(self.state)
+        result = Board(size=self.size, state=self.state.copy())
         return result
 
 #

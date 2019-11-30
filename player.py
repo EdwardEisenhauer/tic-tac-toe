@@ -1,6 +1,6 @@
 from board import Board
 from enums import Mode
-from funs import state_to_str
+from funs import state_to_str, state_to_actions
 
 from math import sqrt
 import random
@@ -102,16 +102,18 @@ class Player:
         """
         current_state = board.get_state()
         current_state_str = state_to_str(current_state)
-        self.q_table.draw(current_state_str)
         if current_state_str not in self.q_table.get_q_table():
             self.q_table.add_state(current_state_str, board.get_actions())
+        self.q_table.draw(current_state_str)
         if random.uniform(0, 1) < self.epsilon:
             q_move = random.choice(board.get_actions())
             print('RANDOM Q-MOVE: ' + str(q_move+1))
         else:
             q_move = self.q_table.get_max_q_move(current_state_str)
             print('MAX Q-MOVE: ' + str(q_move+1))
-        self.update_q_table(current_state, q_move, self._reward(board))
+        new_board = board.copy()
+        new_board[q_move] = self.token
+        self.update_q_table(current_state, q_move, self._reward(new_board))
         return q_move
 
     def _calculate_heuristic(self, board):
@@ -171,7 +173,9 @@ class QTable:
     def __init__(self):
         self.q_table = {}
 
-    def add_state(self, state, actions):
+    def add_state(self, state, actions=None):
+        if actions is None:
+            actions = state_to_actions(state)
         self.q_table[state] = {action: 0 for action in actions}
 
     def get_max_q_move(self, state: list):
@@ -185,12 +189,14 @@ class QTable:
         return self.q_table
 
     def draw(self, state):
-        """This function needs rewriting - gonna do this later tho"""
+        if type(state) is not str:
+            state = state_to_str(state)
         size = int(sqrt(len(state)))
         if state in self.q_table:
             to_draw = self.q_table[state].copy()
         else:
-            return
+            self.add_state(state)
+            to_draw = self.q_table[state].copy()
         for i in range(len(state)):
             if i not in to_draw:
                 to_draw[i] = state[i]
