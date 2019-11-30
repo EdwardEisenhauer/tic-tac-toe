@@ -129,8 +129,7 @@ class QTable:
         return max(self.q_table[state], key=lambda key: self.q_table[state][key])
 
     def get_max_q_move_value(self, state: list):
-        print(max(self.q_table[state]))
-        return max(self.q_table[state])
+        return max([i for i in self.q_table[state].values()])
 
     def get_q_table(self):
         return self.q_table
