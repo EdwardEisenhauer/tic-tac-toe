@@ -49,7 +49,7 @@ class Board:
 
     def get_actions(self):
         """ Returns list of indices where a move is possible """
-        return list(k for k, v in enumerate(self.state) if v == Field.EMPTY)
+        return list(index for index, value in enumerate(self.state) if value == Field.EMPTY)
 
     def copy(self):
         """ Returns copy of board. """
