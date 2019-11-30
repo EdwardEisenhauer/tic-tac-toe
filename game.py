@@ -3,6 +3,7 @@ from enums import Field
 
 from matplotlib import pyplot
 
+
 class Game:
     def __init__(self, players, board_size=3, draw=False):
         self.draw: bool = draw

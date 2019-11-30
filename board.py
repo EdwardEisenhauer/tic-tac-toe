@@ -1,5 +1,6 @@
 from enums import Field
 
+
 class Board:
     def __init__(self, size=3, state=None):
         self.size = size

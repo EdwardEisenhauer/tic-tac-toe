@@ -1,5 +1,6 @@
 from enum import Enum, auto
 
+
 class Field(Enum):
     EMPTY = 0
     X = 1

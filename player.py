@@ -1,8 +1,10 @@
+from board import Board
 from enums import Mode
 from funs import state_to_str
 
-from math import pow, sqrt
+from math import sqrt
 import random
+
 
 class Player:
     def __init__(self, token, mode=Mode.RANDOM, alpha=1.0, gamma=1.0, epsilon=1.0):
@@ -95,9 +97,9 @@ class Player:
 
     def update_q_table(self, state, action, reward):
         """Q(s,a) = R(s,a) + maxQ'(s',a')"""
-        state = state_to_str(state)                         # s
-        new_state = self._new_state(state, action)          # s'
-        max_q_value = self.q_table.get_max_q_move_value(new_state) # maxQ'(s',a')
+        state = state_to_str(state)                                 # s
+        new_state = self._new_state(state, action)                  # s'
+        max_q_value = self.q_table.get_max_q_move_value(new_state)  # maxQ'(s',a')
         self.q_table.get_q_table()[state][action] = reward + self.gamma * max_q_value
         print(str(state) + ":" + str(action) + " = " + str(reward) + " + " + str(self.gamma * max_q_value))
 
@@ -108,7 +110,8 @@ class Player:
             self.q_table.add_state(new_state, actions)
         return new_state
 
-    def _from_state_str_to_actions(self, state):
+    @staticmethod
+    def _from_state_str_to_actions(state):
         return [i for i, x in enumerate(state) if x == ' ']
 
     def get_token(self):
