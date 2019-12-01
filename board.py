@@ -70,23 +70,6 @@ class Board:
         if row + column == self.size - 1:
             self.winning_conditions[2 * self.size + 1] += token.value
 
-    def draw(self, heuristics=False):
-        to_draw = list(map(lambda x: x.to_char(), self.state))
-        if heuristics:
-            header = "    " + "{:2}" * self.size
-            print(header.format(*self.winning_conditions[0:self.size]))
-            line = "{:2} {} " + "{:2}" * self.size + "|"
-            for i in range(self.size):
-                print(line.format(
-                    self.winning_conditions[self.size + i], '|', *to_draw[self.size * i:(i + 1) * self.size]
-                ))
-            footer = "{:4}{:" + str(2 * self.size + 2) + "}"
-            print(footer.format(self.winning_conditions[2 * self.size + 1], self.winning_conditions[2 * self.size]))
-        else:
-            line = "| " + "{:2}" * self.size + "|"
-            for i in range(self.size):
-                print(line.format(*to_draw[self.size * i:(i + 1) * self.size]))
-
     def get_winner(self):
         if self.size in self.winning_conditions:
             return Field.X

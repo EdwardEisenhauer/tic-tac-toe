@@ -1,5 +1,6 @@
 from board import Board
 from enums import Field
+from funs import draw_board
 
 from matplotlib import pyplot
 
@@ -16,7 +17,7 @@ class Game:
 
     def play(self):
         if self.draw:
-            self.board.draw(heuristics=True)
+            draw_board(self.board, heuristics=True)
         while self.winner is None:
             try:
                 self.current_player.make_move(self.board)
@@ -24,7 +25,7 @@ class Game:
                 print("This field is already taken!")
                 continue
             if self.draw:
-                self.board.draw(heuristics=True)
+                draw_board(self.board, heuristics=True)
             self.winner = self.board.get_winner()
             self._switch_players()
             print("------------")
