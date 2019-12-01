@@ -3,7 +3,6 @@ from enums import Mode
 from funs import state_to_str, state_to_actions
 from qtable import QTable
 
-from math import sqrt
 import random
 
 
@@ -134,6 +133,8 @@ class QAgent(Player):
         self.gamma = gamma
         self.epsilon = epsilon
         self.q_table = QTable()
+        self.states_history = []  # Keeps the information about one episode of a game
+        self.actions_history = []  # Keeps the information about the actions in an episode
 
     def make_move(self, board):
         """
@@ -143,6 +144,7 @@ class QAgent(Player):
         """
         current_state = board.get_state()
         current_state_str = state_to_str(current_state)
+
         if current_state_str not in self.q_table.q_table:
             self.q_table.add_state(current_state_str, board.get_actions())
         print("Q-TABLE BEFORE MOVE")
@@ -153,13 +155,14 @@ class QAgent(Player):
         else:
             q_move = self.q_table.get_max_q_move(current_state_str)
             print('MAX Q-MOVE: ' + str(q_move + 1))
-        new_board = board.copy()
-        new_board[q_move] = self.token
-        self.update_q_table(current_state, q_move, self.reward(new_board))
         board[q_move] = self.token
+
+        self.states_history.append(current_state_str)
+        self.actions_history.append(q_move)
+
         return q_move
 
-    def update_q_table(self, state, action, reward):
+    def update_q_table(self, reward, state=None, action=None):
         """
         Updates Q-Table based on the equation:
         Q(s,a) = R(s,a) + maxQ'(s',a')
@@ -168,9 +171,13 @@ class QAgent(Player):
         :param reward:
         :return:
         """
-        state = state_to_str(state)                                  # s
-        if state not in self.q_table.q_table:
-            self.q_table.add_state(state)
+        if state or action is None:
+            state = self.states_history[-1]
+            action = self.actions_history[-1]
+        else:
+            state = state_to_str(state)
+            if state not in self.q_table.q_table:
+                self.q_table.add_state(state)
         next_state = self._next_state(state, action)                  # s'
         max_q_value = self.q_table.get_max_q_move_value(next_state)  # maxQ'(s',a')
         self.q_table.q_table[state][action] = reward + self.gamma * max_q_value

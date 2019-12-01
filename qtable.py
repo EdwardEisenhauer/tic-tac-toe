@@ -42,7 +42,7 @@ class QTable:
         for i in range(len(state)):
             if i not in to_draw:
                 to_draw[i] = state[i]
-        line = "   | " + "{:5}" * size + "|"
+        line = "   | " + "{:6}" * size + "|"
         list_to_draw = [''] * len(state)
         for key in to_draw:
             if type(to_draw[key]) is float:

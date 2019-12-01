@@ -16,8 +16,6 @@ class Game:
         self.board_size = board_size
         self.draw: bool = draw
         self.board = Board(board_size)
-        self.states_history = [self.board.get_state()]          # Keeps the information about one episode of a game
-        self.actions_history = []                               # Keeps the information about the actions in an episode
         self.players = players
         self.current_player = players[0]
         self.winner = None
@@ -28,8 +26,7 @@ class Game:
             draw_board(self.board, heuristics=True)
         while self.winner is None:
             try:
-                action = self.current_player.make_move(self.board)
-                self.actions_history.append(action)
+                self.current_player.make_move(self.board)
             except ValueError:
                 print("This field is already taken!")
                 continue
@@ -37,19 +34,16 @@ class Game:
                 draw_board(self.board, heuristics=True)
             self.winner = self.board.get_winner()
             self._switch_players()
-            self.states_history.append(self.board.get_state())
             print("------------")
         for player in self.players:
             if player.mode is Mode.Q:
-                player.update_q_table(self.states_history[-3], self.actions_history[-2], player.reward(self.board))
-        print(state_to_str(self.states_history[-2]))
+                player.update_q_table(player.reward(self.board))
         self._update_stats()
 
     def reset(self):
         self.board = Board(self.board_size)
         self.current_player = self.players[0]
         self.winner = None
-        self.states_history = [self.board.state]
 
     def _update_stats(self):
         try:
