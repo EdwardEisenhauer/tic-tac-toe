@@ -1,21 +1,34 @@
+from funs import state_to_actions, state_to_str
+
+from math import sqrt
+
+
 class QTable:
     def __init__(self):
         self.q_table = {}
+
+    def __setitem__(self, state, action, value):
+        """
+        Set Q(state, action)
+        :param state:
+        :param action:
+        :param value: new value of Q(s,a)
+        :return:
+        """
+        self.q_table[state][action] = value
 
     def add_state(self, state, actions=None):
         if actions is None:
             actions = state_to_actions(state)
         self.q_table[state] = {action: 0 for action in actions}
 
-    def get_max_q_move(self, state: list):
-        print(max(self.q_table[state], key=lambda key: self.q_table[state][key]))
-        return max(self.q_table[state], key=lambda key: self.q_table[state][key])
+    def get_max_q_move(self, state: str):
+        max_q_move = max(self.q_table[state], key=lambda action: self.q_table[state][action])
+        print(max_q_move)
+        return max_q_move
 
-    def get_max_q_move_value(self, state: list):
+    def get_max_q_move_value(self, state: str):
         return max([i for i in self.q_table[state].values()])
-
-    def get_q_table(self):
-        return self.q_table
 
     def draw(self, state):
         if type(state) is not str:
