@@ -27,7 +27,7 @@ class Board:
 
         :raises IndexError
         :param index: Field index
-        :param marker: one of enums.Field
+        :param token: one of enums.Field
         """
         row = int(index / self.size)
         column = index % self.size
@@ -71,6 +71,10 @@ class Board:
             self.winning_conditions[2 * self.size + 1] += token.value
 
     def get_winner(self):
+        """
+        Verifies if the current state is the terminating one and/or has a winner.
+        :return: Field.EMPTY if there is a Tie.
+        """
         if self.size in self.winning_conditions:
             return Field.X
         elif -self.size in self.winning_conditions:
@@ -84,29 +88,10 @@ class Board:
         return copy.copy(self.state)
 
     def get_actions(self):
-        """ Returns list of indices where a move is possible """
+        """ Returns list of indices where a move is possible. """
         return list(index for index, value in enumerate(self.state) if value == Field.EMPTY)
-
-    def get_winning_conditions(self):
-        return self.winning_conditions
 
     def copy(self):
         """ Returns copy of board. """
         result = Board(size=self.size, state=self.state.copy())
         return result
-
-#
-# class Board:
-#     def get_winning_conditions(self):
-#         return self.winning_conditions
-#
-#     def get_actions(self):
-#         return self.actions
-#
-#     def get_size(self):
-#         return self.size
-#
-#     def get_state(self):
-#         return self.state
-#
-#
