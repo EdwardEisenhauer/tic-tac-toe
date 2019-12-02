@@ -38,6 +38,7 @@ class Game:
         for player in self.players:
             if player.mode is Mode.Q:
                 player.update_q_table(player.reward(self.board))
+                player.reset_history()
         self._update_stats()
 
     def reset(self):

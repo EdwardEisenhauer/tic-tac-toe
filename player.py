@@ -162,7 +162,7 @@ class QAgent(Player):
 
         return q_move
 
-    def update_q_table(self, reward, state=None, action=None):
+    def update_q_table(self, reward):
         """
         Updates Q-Table based on the equation:
         Q(s,a) = R(s,a) + maxQ'(s',a')
@@ -171,17 +171,21 @@ class QAgent(Player):
         :param reward:
         :return:
         """
-        if state or action is None:
-            state = self.states_history[-1]
-            action = self.actions_history[-1]
-        else:
-            state = state_to_str(state)
-            if state not in self.q_table.q_table:
-                self.q_table.add_state(state)
-        next_state = self._next_state(state, action)                  # s'
-        max_q_value = self.q_table.get_max_q_move_value(next_state)  # maxQ'(s',a')
-        self.q_table.q_table[state][action] = reward + self.gamma * max_q_value
-        print(str(state) + ":" + str(action) + " = " + str(reward) + " + " + str(self.gamma * max_q_value))
+        print("Q(s,a) = R + g*maxQ(s',a')")
+        print(len(self.states_history))
+        for i in range(1, len(self.states_history)):
+            state = self.states_history[-i]
+            action = self.actions_history[-i]
+            next_state = self._next_state(state, action)                  # s'
+            max_q_value = self.q_table.get_max_q_move_value(next_state)  # maxQ'(s',a')
+            new_value = (1 - self.alpha) * self.q_table.q_table[state][action] + self.alpha * (self.gamma**i * reward)
+            self.q_table.q_table[state][action] = new_value
+            print(str(state) + ":" + str(action) + " = " + str(round(new_value, 3)))
+            # print(str(round(new_value, 3)) + "=" + str(self.alpha) + "*(" + str(reward) + " + " + str(round(self.gamma**i, 3)) + " * " + str(max_q_value) + ")")
+
+    def reset_history(self):
+        self.states_history = []
+        self.actions_history = []
 
     def _next_state(self, state, action) -> str:
         """
