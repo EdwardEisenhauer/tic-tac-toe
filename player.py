@@ -1,6 +1,6 @@
 from board import Board
 from enums import Mode
-from funs import state_to_str, state_to_actions
+from funs import state_to_str
 from qtable import QTable
 
 import random
@@ -121,7 +121,7 @@ class Heuristic(Player):
 
 
 class QAgent(Player):
-    def __init__(self, token, alpha=1.0, gamma=1.0, epsilon=1.0):
+    def __init__(self, token, alpha=1.0, gamma=1.0, epsilon=1.0, filename=None):
         """
         :param alpha: Learning rate [0,1]
         :param gamma: Discount factor [0,1]
@@ -135,6 +135,8 @@ class QAgent(Player):
         self.q_table = QTable()
         self.states_history = []  # Keeps the information about one episode of a game
         self.actions_history = []  # Keeps the information about the actions in an episode
+        if filename is not None:
+            self.q_table.read_from_file(filename)
 
     def make_move(self, board):
         """
@@ -147,14 +149,14 @@ class QAgent(Player):
 
         if current_state_str not in self.q_table.q_table:
             self.q_table.add_state(current_state_str, board.get_actions())
-        print("Q-TABLE BEFORE MOVE")
-        self.q_table.draw(current_state_str)
+        # print("Q-TABLE BEFORE MOVE")
+        # self.q_table.draw(current_state_str)
         if random.uniform(0, 1) < self.epsilon:
             q_move = self.make_random_move(board)
-            print('RANDOM Q-MOVE: ' + str(q_move + 1))
+            # print('RANDOM Q-MOVE: ' + str(q_move + 1))
         else:
             q_move = self.q_table.get_max_q_move(current_state_str)
-            print('MAX Q-MOVE: ' + str(q_move + 1))
+            # print('MAX Q-MOVE: ' + str(q_move + 1))
         board[q_move] = self.token
 
         self.states_history.append(current_state_str)
@@ -165,22 +167,24 @@ class QAgent(Player):
     def update_q_table(self, reward):
         """
         Updates Q-Table based on the equation:
-        Q(s,a) = R(s,a) + maxQ'(s',a')
+        newQ(s,a) = (1-a) * Q(s,a) + a * *(g^i * R(s,a)) maxQ'(s',a')
         :param state:
         :param action:
         :param reward:
         :return:
         """
-        print("Q(s,a) = R + g*maxQ(s',a')")
-        print(len(self.states_history))
+        # print("Q(s,a) = R + g*maxQ(s',a')")
+        # print(len(self.states_history))
         for i in range(1, len(self.states_history)):
             state = self.states_history[-i]
             action = self.actions_history[-i]
             next_state = self._next_state(state, action)                  # s'
             max_q_value = self.q_table.get_max_q_move_value(next_state)  # maxQ'(s',a')
+            if max_q_value > 0:
+                print("maxQ'(s',a') = " + str(max_q_value))
             new_value = (1 - self.alpha) * self.q_table.q_table[state][action] + self.alpha * (self.gamma**i * reward)
             self.q_table.q_table[state][action] = new_value
-            print(str(state) + ":" + str(action) + " = " + str(round(new_value, 3)))
+            # print(str(state) + ":" + str(action) + " = " + str(round(new_value, 3)))
             # print(str(round(new_value, 3)) + "=" + str(self.alpha) + "*(" + str(reward) + " + " + str(round(self.gamma**i, 3)) + " * " + str(max_q_value) + ")")
 
     def reset_history(self):

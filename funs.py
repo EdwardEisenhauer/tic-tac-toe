@@ -1,9 +1,21 @@
+from matplotlib import pyplot
+
+"""
+State functions
+"""
+
+
 def state_to_str(state: list) -> str:
     return ''.join(list(map(lambda x: x.to_char(), state)))
 
 
 def state_to_actions(state: str) -> list:
     return [i for i, x in enumerate(state) if x == ' ']
+
+
+"""
+Visualisation
+"""
 
 
 def draw_board(board, heuristics=False):
@@ -22,3 +34,10 @@ def draw_board(board, heuristics=False):
         line = "| " + "{:2}" * board.size + "|"
         for i in range(board.size):
             print(line.format(*to_draw[board.size * i:(i + 1) * board.size]))
+
+
+def visualize_stats(game):
+    pyplot.subplot(111)
+    pyplot.bar(range(len(game.stats)), game.stats.values())
+    pyplot.xticks(range(len(game.stats)), game.stats.keys())
+    pyplot.show()

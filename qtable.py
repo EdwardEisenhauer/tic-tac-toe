@@ -1,6 +1,8 @@
 from funs import state_to_actions, state_to_str
 
 from math import sqrt
+import pickle
+import time
 
 
 class QTable:
@@ -24,11 +26,23 @@ class QTable:
 
     def get_max_q_move(self, state: str):
         max_q_move = max(self.q_table[state], key=lambda action: self.q_table[state][action])
-        print(max_q_move)
+        # print(max_q_move)
         return max_q_move
 
     def get_max_q_move_value(self, state: str):
         return max([i for i in self.q_table[state].values()])
+
+    def save_to_file(self, filename=None):
+        if filename is None:
+            filename = str(time.asctime()) + '.pkl'
+        file = open(filename, 'wb')
+        pickle.dump(self.q_table, file)
+        file.close()
+
+    def read_from_file(self, filename='q_table.pkl'):
+        file = open(filename, 'rb')
+        self.q_table = pickle.load(file)
+        file.close()
 
     def draw(self, state):
         if type(state) is not str:

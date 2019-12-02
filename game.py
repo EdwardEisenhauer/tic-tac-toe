@@ -1,8 +1,6 @@
 from board import Board
 from enums import Field, Mode
-from funs import draw_board, state_to_str
-
-from matplotlib import pyplot
+from funs import draw_board
 
 
 class Game:
@@ -34,7 +32,7 @@ class Game:
                 draw_board(self.board, heuristics=True)
             self.winner = self.board.get_winner()
             self._switch_players()
-            print("------------")
+            # print("------------")
         for player in self.players:
             if player.mode is Mode.Q:
                 player.update_q_table(player.reward(self.board))
@@ -56,12 +54,3 @@ class Game:
 
     def _switch_players(self):
         self.current_player = {self.players[0]: self.players[1], self.players[1]: self.players[0]}[self.current_player]
-
-    def visualize_stats(self):
-        pyplot.subplot(111)
-        pyplot.bar(range(len(self.stats)), self.stats.values())
-        pyplot.xticks(range(len(self.stats)), self.stats.keys())
-        pyplot.show()
-
-    def print_stats(self):
-        print(self.stats)
