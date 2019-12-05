@@ -1,5 +1,6 @@
 from enums import Field
 import copy
+from math import sqrt
 
 
 class Board:
@@ -15,6 +16,7 @@ class Board:
         self.winning_conditions = [0] * (2 * self.size + 2)
         if state is not None:
             self.state = state
+            self.size = int(sqrt(len(state)))
             self._calculate_winning_conditions()
 
     def __setitem__(self, index, token):
@@ -53,8 +55,8 @@ class Board:
         for index, field in enumerate(self.state):
             row = int(index / self.size)
             column = index % self.size
-            self.winning_conditions[row] += field.value
-            self.winning_conditions[self.size + column] += field.value
+            self.winning_conditions[column] += field.value
+            self.winning_conditions[self.size + row] += field.value
             if row == column:
                 self.winning_conditions[2 * self.size] += field.value
             if row + column == self.size - 1:
