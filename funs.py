@@ -1,3 +1,4 @@
+from enums import Mode
 from matplotlib import pyplot
 
 """
@@ -37,7 +38,21 @@ def draw_board(board, heuristics=False):
 
 
 def visualize_stats(game):
-    pyplot.subplot(111)
     pyplot.bar(range(len(game.stats)), game.stats.values())
     pyplot.xticks(range(len(game.stats)), game.stats.keys())
     pyplot.show()
+
+
+"""
+Other
+"""
+
+
+def game_to_filename(game):
+    filename = ''
+    for player in game.players:
+        filename = filename + player.mode.name
+        if player.mode is Mode.Q:
+            filename = filename + "(" + str(player.alpha) + "," + str(player.gamma) + "," + str(player.epsilon) + ")"
+    filename = filename + ".png"
+    return filename

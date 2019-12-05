@@ -1,6 +1,6 @@
 from board import Board
 from enums import Mode
-from funs import state_to_str
+from funs import draw_board, state_to_str
 from qtable import QTable
 
 import random
@@ -110,6 +110,9 @@ class Heuristic(Player):
         for index, field in enumerate(board.get_actions()):
             new_board = Board(state=current_state.copy())
             new_board[field] = self.token
+            if new_board.get_winner() is self.token:
+                optimal_field = field
+                break
             predicted_heuristic = self._calculate_heuristic(new_board)
             if self.token.value*(predicted_heuristic - current_heuristic_sum) > 0:
                 current_heuristic_sum = predicted_heuristic
@@ -179,9 +182,9 @@ class QAgent(Player):
             state = self.states_history[-i]
             action = self.actions_history[-i]
             next_state = self._next_state(state, action)                  # s'
-            max_q_value = self.q_table.get_max_q_move_value(next_state)  # maxQ'(s',a')
-            if max_q_value > 0:
-                print("maxQ'(s',a') = " + str(max_q_value))
+            # max_q_value = self.q_table.get_max_q_move_value(next_state)  # maxQ'(s',a')
+            # if max_q_value > 0:
+            #     print("maxQ'(s',a') = " + str(max_q_value))
             new_value = (1 - self.alpha) * self.q_table.q_table[state][action] + self.alpha * (self.gamma**i * reward)
             self.q_table.q_table[state][action] = new_value
             # print(str(state) + ":" + str(action) + " = " + str(round(new_value, 3)))
