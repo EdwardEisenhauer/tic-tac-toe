@@ -1,0 +1,10 @@
+{'player_x': 'Type of the X player [human|random|heuristic|q]',
+'player_o': 'Type of the O player [human|random|heuristic|q]',
+'games': 'number of games to play',
+'draw': 'Draws the game board',
+'live': 'Draws plots during computing',
+'output_file': 'Path to file in which plots will be saved',
+'alpha': 'Alpha value for QAgent in the range of [0,1]',
+'gamma': 'Gama value for QAgent in the range of [0,1]',
+'epsilon': 'Epsilon value for QAgent in the range of [0,1]',
+'percentage': 'Shows overall percentage'}
