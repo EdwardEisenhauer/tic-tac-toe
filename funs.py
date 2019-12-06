@@ -1,5 +1,8 @@
-from enums import Mode
+from board import Board
+from enums import Field, Mode
 from matplotlib import pyplot
+
+import math
 
 """
 State functions

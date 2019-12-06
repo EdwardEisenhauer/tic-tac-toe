@@ -1,8 +1,9 @@
 from board import Board
-from enums import Mode
+from enums import Field, Mode
 from funs import draw_board, state_to_str
 from qtable import QTable
 
+import math
 import random
 
 
@@ -99,28 +100,96 @@ class Heuristic(Player):
         self.mode = Mode.HEURISTIC
 
     def make_move(self, board):
-        """
-        Chooses a move based on a simple heuristics and performs it
-        :param board: game board to modify
-        :return: index of a move chosen by the heuristic algorithm
-        """
-        current_heuristic_sum = sum(board.winning_conditions)
-        optimal_field = None
-        current_state = board.get_state()
-        for index, field in enumerate(board.get_actions()):
-            new_board = Board(state=current_state.copy())
-            new_board[field] = self.token
-            if new_board.get_winner() is self.token:
-                optimal_field = field
-                break
-            predicted_heuristic = self._calculate_heuristic(new_board)
-            if self.token.value*(predicted_heuristic - current_heuristic_sum) > 0:
-                current_heuristic_sum = predicted_heuristic
-                optimal_field = field
-        if optimal_field is None:
-            optimal_field = self.make_random_move(board)
-        board[optimal_field] = self.token
-        return optimal_field
+        if len(board.get_actions()) is 1:
+            move = self.make_random_move(board)
+            board[move] = self.token
+            return move
+        else:
+            score, move = self.minmax(board, self.token)
+            board[move] = self.token
+            return move
+
+    def _get_field_with_highest_winning_condition(self, board):
+        empty_fields = board.get_actions()
+        highest_field = [-math.inf, empty_fields[0]]
+        for field in empty_fields:
+            field_heuristic = board.winning_conditions[field % board.size] + board.winning_conditions[int(field/board.size) + 3]
+            if field % 4:
+                field_heuristic = field_heuristic + board.winning_conditions[2 * board.size]
+            if field % 2:
+                field_heuristic = field_heuristic + board.winning_conditions[2 * board.size + 1]
+            if field_heuristic > highest_field[0]:
+                highest_field = [field_heuristic, field]
+        return highest_field
+
+    def minmax(self, board, token, depth=2):
+        new_board = Board(board.size, board.get_state().copy())
+        if new_board.get_winner():
+            if abs(new_board.get_winner().value) is 1:
+                return new_board.get_winner().value * -math.inf
+        if depth == 0:
+            return self._get_field_with_highest_winning_condition(new_board)
+
+        if token is Field.O:
+            best = [-math.inf, []]
+            for field in new_board.get_actions():
+                if len(new_board.get_actions()) is 1:
+                    return self._get_field_with_highest_winning_condition(new_board)
+                else:
+                    next_board = Board(new_board.size, new_board.get_state().copy())
+                    next_board[field] = Field.O
+                    value = self.minmax(next_board, Field.X, depth - 1)
+                    if value == math.inf:
+                        return [value, field]
+                    if value[0] > best[0]:
+                        best = [value[0], field]
+        else:
+            best = [math.inf, []]
+            for field in new_board.get_actions():
+                if len(new_board.get_actions()) is 1:
+                    return self._get_field_with_highest_winning_condition(new_board)
+                else:
+                    next_board = Board(new_board.size, new_board.get_state().copy())
+                    next_board[field] = Field.X
+                    value = self.minmax(next_board, Field.O, depth - 1)
+                    if value == -math.inf:
+                        return [value, field]
+                    if not isinstance(value, list):
+                        print("ops")
+                        print(type(value))
+                        print(value)
+                    if value[0] < best[0]:
+                        best = [value[0], field]
+        if best[0] == -math.inf:
+            return self._get_field_with_highest_winning_condition(next_board)
+        elif best[0] == math.inf:
+            return self._get_field_with_highest_winning_condition(next_board)
+        return best
+
+    # def make_move(self, board):
+    #     """
+    #     Chooses a move based on a simple heuristics and performs it
+    #     :param board: game board to modify
+    #     :return: index of a move chosen by the heuristic algorithm
+    #     """
+    #     current_heuristic_sum = sum(board.winning_conditions)
+    #     optimal_field = None
+    #     current_state = board.get_state()
+    #     for index, field in enumerate(board.get_actions()):
+    #         # Gosh this needs rewriting into minmax
+    #         new_board = Board(state=current_state.copy())
+    #         new_board[field] = self.token
+    #         if new_board.get_winner() is self.token:
+    #             optimal_field = field
+    #             break
+    #         predicted_heuristic = self._calculate_heuristic(new_board)
+    #         if self.token.value*(predicted_heuristic - current_heuristic_sum) > 0:
+    #             current_heuristic_sum = predicted_heuristic
+    #             optimal_field = field
+    #     if optimal_field is None:
+    #         optimal_field = self.make_random_move(board)
+    #     board[optimal_field] = self.token
+    #     return optimal_field
 
 
 class QAgent(Player):
