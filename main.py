@@ -93,7 +93,7 @@ for episode in range(1, games_to_play+1):
     """
     tic_tac_toe.play()
     tic_tac_toe.reset()
-    if not episode % int(games_to_play/100+1) or episode is 1:
+    if not episode % int(games_to_play/100+1) or episode == 1:
         x.append(episode)
         y_x.append(tic_tac_toe.stats['X']/episode)
         y_o.append(tic_tac_toe.stats['O']/episode)
@@ -106,7 +106,7 @@ for episode in range(1, games_to_play+1):
             print(str(int(episode/games_to_play*100)) + "%")
 
 if args.output_file is not None:
-    if args.output_file is ' ':
+    if args.output_file == ' ':
         filename = game_to_filename(tic_tac_toe)
     else:
         filename = args.output_file
